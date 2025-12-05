@@ -11,12 +11,12 @@
         width="90%"
         max-width="500"
       >
-        <h1 class="text-primaryText text-center text-h3 font-weight-semibold mt-5 mt-sm-0">Elucide Notes</h1>
-        <p class="text-secondaryText text-center mb-10">Clareza para suas ideias.</p>
+        <h1 class="text-primaryText text-center text-h3 font-weight-semibold mt-5 mt-sm-0">Registre-se</h1>
+        <p class="text-secondaryText text-center mb-10">Crie sua conta para aproveitar nossa plataforma.</p>
 
         <v-text-field
-          name="email"
-          placeholder="informe seu email"
+          name="name"
+          placeholder="informe seu nome"
           prepend-inner-icon="mdi-account"
           variant="solo"
           clearable
@@ -25,7 +25,17 @@
         ></v-text-field>
 
         <v-text-field
-          name="password"
+          name="email"
+          placeholder="informe seu email"
+          prepend-inner-icon="mdi-at"
+          variant="solo"
+          clearable
+          icon-color="primary"
+          flat
+        ></v-text-field>
+
+        <v-text-field
+          name="confirmPassword"
           :type="viewPassword ? 'text' : 'password'"
           placeholder="informe sua senha"
           prepend-inner-icon="mdi-lock"
@@ -37,18 +47,32 @@
           @click:append-inner="viewPassword = !viewPassword"
         ></v-text-field>
 
+        <v-text-field
+          name="password"
+          :type="viewConfirmPassword ? 'text' : 'password'"
+          placeholder="confirme sua senha"
+          prepend-inner-icon="mdi-lock"
+          :append-inner-icon="viewConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          variant="solo"
+          clearable
+          icon-color="primary"
+          flat
+          @click:append-inner="viewConfirmPassword = !viewConfirmPassword"
+        ></v-text-field>
+
         <v-btn 
           color="primary" 
           class="mt-2 mx-auto d-block" 
           height="48"
-        >Entrar</v-btn>
+        >Comfirma</v-btn>
 
-        <p class="text-center text-secondaryText mt-4">
-          Não possui uma conta? 
-          <span @click="router.push('/register')" class="text-primary font-weight-bold cursor-pointer">Registre-se.</span>
-        </p>
-
-        <p class="text-center text-primary font-weight-bold cursor-pointer mt-4">Esqueci minha senha</p>
+        <v-btn 
+          color="primary" 
+          class="mt-2 mx-auto d-block" 
+          height="48"
+          variant="text"
+          @click="router.back()"
+        >voltar</v-btn>
       </v-sheet>
     </v-sheet>
 
@@ -73,4 +97,5 @@
   const display = useDisplay()
   const router = useRouter()
   const viewPassword = ref(false);
+  const viewConfirmPassword = ref(false)
 </script>
