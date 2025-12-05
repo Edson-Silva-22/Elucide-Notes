@@ -1,9 +1,9 @@
 <template>
-  <v-container fluid class="d-flex pa-0">
+  <v-container fluid class="d-flex pa-0 flex-column-reverse flex-sm-row">
     <v-sheet
-      class="d-flex align-center justify-center"
-      height="100vh"
-      width="50%"
+      class="d-flex align-sm-center justify-center v-sheet"
+      :height="display.xs.value ? '80vh' : '100vh'"
+      :width="display.xs.value ? '100%' : '50%'"
       color="background"
     >
       <v-sheet
@@ -11,7 +11,7 @@
         width="90%"
         max-width="500"
       >
-        <h1 class="text-primaryText text-center text-h2 font-weight-semibold">Elucide Notes</h1>
+        <h1 class="text-primaryText text-center text-h3 font-weight-semibold mt-5 mt-sm-0">Elucide Notes</h1>
         <p class="text-secondaryText text-center mb-10">Clareza para suas ideias.</p>
 
         <v-text-field
@@ -39,7 +39,7 @@
 
         <v-btn 
           color="primary" 
-          class="mt-10 mx-auto d-block" 
+          class="mt-2 mx-auto d-block" 
           height="48"
         >Entrar</v-btn>
 
@@ -54,8 +54,8 @@
 
     <v-sheet
       class="d-flex align-center justify-center"
-      height="100vh"
-      width="50%"
+      :height="display.xs.value ? '20vh' : '100vh'"
+      :width="display.xs.value ? '100%' : '50%'"
       color="secondary"
     >
       <v-img
@@ -68,7 +68,8 @@
 </template>
 
 <script setup lang="ts">
-import { vi } from 'vuetify/locale';
+  import { useDisplay } from 'vuetify';
 
+  const display = useDisplay()
   const viewPassword = ref(false);
 </script>
