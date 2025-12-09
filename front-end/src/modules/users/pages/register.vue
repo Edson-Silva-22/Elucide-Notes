@@ -22,6 +22,8 @@
           clearable
           icon-color="primary"
           flat
+          v-model="name"
+          :error-messages="errors.name"
         ></v-text-field>
 
         <v-text-field
@@ -32,10 +34,12 @@
           clearable
           icon-color="primary"
           flat
+          v-model="email"
+          :error-messages="errors.email"
         ></v-text-field>
 
         <v-text-field
-          name="confirmPassword"
+          name="password"
           :type="viewPassword ? 'text' : 'password'"
           placeholder="informe sua senha"
           prepend-inner-icon="mdi-lock"
@@ -45,10 +49,12 @@
           icon-color="primary"
           flat
           @click:append-inner="viewPassword = !viewPassword"
+          v-model="password"
+          :error-messages="errors.password"
         ></v-text-field>
 
         <v-text-field
-          name="password"
+          name="confirmPassword"
           :type="viewConfirmPassword ? 'text' : 'password'"
           placeholder="confirme sua senha"
           prepend-inner-icon="mdi-lock"
@@ -58,12 +64,15 @@
           icon-color="primary"
           flat
           @click:append-inner="viewConfirmPassword = !viewConfirmPassword"
+          v-model="confirmPassword"
+          :error-messages="errors.confirmPassword"
         ></v-text-field>
 
         <v-btn 
           color="primary" 
           class="mt-2 mx-auto d-block" 
           height="48"
+          @click="register"
         >Comfirma</v-btn>
 
         <v-btn 
@@ -92,10 +101,21 @@
 </template>
 
 <script setup lang="ts">
+  import registerValidationSchema from '@/utils/validationSchemas/register.validationSchema';
+  import { useField, useForm } from 'vee-validate';
   import { useDisplay } from 'vuetify';
 
   const display = useDisplay()
   const router = useRouter()
   const viewPassword = ref(false);
   const viewConfirmPassword = ref(false)
+  const { handleSubmit, errors } = useForm({ validationSchema: registerValidationSchema })
+  const { value: name } = useField('name')
+  const { value: email } = useField('email')
+  const { value: password } = useField('password')
+  const { value: confirmPassword } = useField('confirmPassword')
+
+  const register = handleSubmit(async (values) => {
+    console.log(values)
+  })
 </script>

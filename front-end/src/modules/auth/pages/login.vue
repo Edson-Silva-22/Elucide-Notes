@@ -22,6 +22,8 @@
           clearable
           icon-color="primary"
           flat
+          v-model="email"
+          :error-messages="errors.email"
         ></v-text-field>
 
         <v-text-field
@@ -35,12 +37,15 @@
           icon-color="primary"
           flat
           @click:append-inner="viewPassword = !viewPassword"
+          v-model="password"
+          :error-messages="errors.password"
         ></v-text-field>
 
         <v-btn 
           color="primary" 
           class="mt-2 mx-auto d-block" 
           height="48"
+          @click="login"
         >Entrar</v-btn>
 
         <p class="text-center text-secondaryText mt-4">
@@ -69,8 +74,17 @@
 
 <script setup lang="ts">
   import { useDisplay } from 'vuetify';
+  import { useField, useForm } from 'vee-validate';
+  import loginValidationSchema from '@/utils/validationSchemas/login.validationSchema';
 
   const display = useDisplay()
   const router = useRouter()
   const viewPassword = ref(false);
+  const { handleSubmit, errors } = useForm({ validationSchema: loginValidationSchema });
+  const { value: email } = useField('email')
+  const { value: password } = useField('password')
+
+  const login = handleSubmit(async (values) => {
+    console.log(values)
+  })
 </script>
