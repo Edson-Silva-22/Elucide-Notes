@@ -1,4 +1,5 @@
 import authRoutes from "@/modules/auth/router/auth.router"
+import projectsRouter from "@/modules/projects/router/projects.router"
 import taksRoutes from "@/modules/tasks/router/tasks.router"
 import usersRouter from "@/modules/users/router/users.router"
 import { createRouter, createWebHistory } from "vue-router"
@@ -18,7 +19,8 @@ const router = createRouter({
   routes: [
     ...taksRoutes,
     ...authRoutes,
-    ...usersRouter
+    ...usersRouter,
+    ...projectsRouter
   ]
 })
 
