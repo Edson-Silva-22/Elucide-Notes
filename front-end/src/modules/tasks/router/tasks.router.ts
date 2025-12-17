@@ -3,7 +3,7 @@ import Default from "@/layouts/default.vue";
 
 const taksRoutes: RouteRecordRaw[] = [
   {
-    path: '/',
+    path: '/tasks',
     component: Default,
     children: [
       {
