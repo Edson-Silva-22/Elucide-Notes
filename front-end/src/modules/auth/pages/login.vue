@@ -85,6 +85,6 @@
   const { value: password } = useField('password')
 
   const login = handleSubmit(async (values) => {
-    console.log(values)
+    router.push('/')
   })
 </script>

@@ -16,7 +16,7 @@
 
       <h1
         class="text-secondary text-h5 font-weight-bold px-1"
-      >{{ projectSelected?.title ?? 'Elucide' }}</h1>
+      >Elucide Notes</h1>
     </template>
   </v-app-bar>
 
