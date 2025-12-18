@@ -22,8 +22,10 @@ export default createVuetify({
           secondary: '#FFEDD5',
           background: '#FFFFFF',
           surface: '#F3F4F6', 
-          primaryText: '#09090B',
-          secondaryText: '#6B7280'
+          primaryText: '#0F172A',
+          secondaryText: '#6B7280',
+          error: '#EA580C',
+          "on-surface": '#0F172A'
         }
       },
 
@@ -34,7 +36,8 @@ export default createVuetify({
           background:  '#18181B',
           surface: '#27272A',
           primaryText: '#F4F4F5',
-          secondaryText: '#6B7280'
+          secondaryText: '#6B7280',
+          error: '#EA580C'
         }
       }
     }
