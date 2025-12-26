@@ -8,8 +8,8 @@ const taksRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        name: 'my-tasks',
-        component: () => import('../pages/my-tasks.vue'),
+        name: 'tasks',
+        component: () => import('../pages/tasks.vue'),
       }
     ]
   }

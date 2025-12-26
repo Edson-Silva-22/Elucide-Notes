@@ -11,10 +11,10 @@
         width="300"
         flat
         class="text-body-1"
-        prepend-icon="mdi-plus"
+        append-icon="mdi-plus"
         color="primary"
         :ripple="false"
-      >Cria Projeto</v-btn>
+      >Criar Projeto</v-btn>
     </div>
 
     <v-text-field

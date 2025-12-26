@@ -25,7 +25,8 @@ export default createVuetify({
           primaryText: '#0F172A',
           secondaryText: '#6B7280',
           error: '#EA580C',
-          "on-surface": '#0F172A'
+          "on-surface": '#0F172A', //cor do texto dentro de cards, dialogs, etc
+          "on-background": '#0F172A' //cor padrão do texto no app
         }
       },
 
