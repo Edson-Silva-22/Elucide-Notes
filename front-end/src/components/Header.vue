@@ -38,7 +38,7 @@
       mandatory
     >
       <v-list-item
-        v-for="menuItem in menu"
+        v-for="menuItem in filteredMenu"
         :value="menuItem.value"
         :append-icon="menuItem.appendIcon"
         :to="menuItem.route"
@@ -68,6 +68,7 @@
     prependIcon?: string
     appendIcon?: string
     route?: string
+    requiresProject?: boolean
   }
 
   const router = useRouter();
@@ -80,17 +81,22 @@
       title: 'Tarefas',
       value: 'tasks',
       prependIcon: 'mdi-format-list-bulleted-square',
-      route: '/tasks'
+      route: '/tasks',
+      requiresProject: true
     },
     {
       title: 'Quadro de Tarefas',
       value: 'taskBoard',
       prependIcon: 'mdi-view-dashboard',
+      // route: '/taskBoard',
+      requiresProject: true
     },
     {
       title: 'Progresso',
       value: 'progress',
       prependIcon: 'mdi-chart-line',
+      // route: '/progress',
+      requiresProject: true
     },
     {
       title: 'Configurações',
@@ -105,4 +111,11 @@
       route: '/login'
     }
   ])
+  const filteredMenu = computed(() => {
+    return menu.value.filter(item => {
+      if (!item.requiresProject) return true
+      return !!projectSelected.value
+    })
+  })
+
 </script>

@@ -10,6 +10,11 @@ const projectsRouter: RouteRecordRaw[] = [
         path: "",
         name: "home",
         component: () => import("@/modules/projects/pages/home.vue"),
+      },
+      {
+        path: 'project-not-selected',
+        name: 'project-not-selected',
+        component: () => import("@/modules/projects/pages/projectNotSelected.vue"),
       }
     ],
   },

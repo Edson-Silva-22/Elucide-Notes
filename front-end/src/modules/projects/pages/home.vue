@@ -53,12 +53,14 @@
 <script setup lang="ts">
   import { useProjectStore } from '../store/projects.store';
 
+  const router = useRouter();
   const projectStore = useProjectStore()
   const projects = ref()
 
   function selectProject(project: { id: string, title: string }) {
     localStorage.setItem('projectSelected', JSON.stringify(project))
     projectStore.projectSelected = project
+    router.push('/tasks')
   }
   
   onMounted(() => {

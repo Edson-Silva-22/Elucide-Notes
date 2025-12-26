@@ -88,3 +88,17 @@
     </v-row>
   </v-container>
 </template>
+
+<script setup lang="ts">
+  import { useProjectStore } from '@/modules/projects/store/projects.store';
+
+  const router = useRouter();
+  const projectStore = useProjectStore()
+
+  onBeforeMount(() => {
+    const projectSelected = projectStore.projectSelected
+    if (!projectSelected) {
+      router.push('/')
+    }
+  }) 
+</script>
