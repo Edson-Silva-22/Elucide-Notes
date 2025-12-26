@@ -24,6 +24,7 @@
     v-model="drawer"
     border="none"
   >
+    <p class="font-weight-bold text-subtitle-2 text-secondaryText mt-5 ml-4">Projeto Selecionado</p>
     <v-btn 
       class="text-none font-weight-bold mb-8 text-body-1"
       variant="text"
@@ -79,6 +80,7 @@
       title: 'Tarefas',
       value: 'tasks',
       prependIcon: 'mdi-format-list-bulleted-square',
+      route: '/tasks'
     },
     {
       title: 'Quadro de Tarefas',
@@ -94,6 +96,7 @@
       title: 'Configurações',
       value: 'settings',
       prependIcon: 'mdi-cog',
+      route: '/settings'
     },
     {
       title: 'Sair',
