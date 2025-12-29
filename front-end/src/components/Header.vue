@@ -38,7 +38,8 @@
       mandatory
     >
       <v-list-item
-        v-for="menuItem in filteredMenu"
+        v-for="(menuItem, index) in filteredMenu"
+        :key="index"
         :value="menuItem.value"
         :append-icon="menuItem.appendIcon"
         :to="menuItem.route"
@@ -88,7 +89,7 @@
       title: 'Quadro de Tarefas',
       value: 'taskBoard',
       prependIcon: 'mdi-view-dashboard',
-      // route: '/taskBoard',
+      route: '/task-board',
       requiresProject: true
     },
     {

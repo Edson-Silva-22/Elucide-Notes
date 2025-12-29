@@ -12,6 +12,17 @@ const taksRoutes: RouteRecordRaw[] = [
         component: () => import('../pages/tasks.vue'),
       }
     ]
+  },
+  {
+    path: '/task-board',
+    component: Default,
+    children: [
+      {
+        path: '',
+        name: 'task-board',
+        component: () => import('@/modules/tasks/pages/taskBoard.vue')
+      }
+    ]
   }
 ]
 
