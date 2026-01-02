@@ -5,34 +5,9 @@
     flat
   >
     <v-card-title
-      class="d-flex justify-space-between text-primaryText"
+      class="text-primaryText text-truncate"
     >
       {{ title }}
-      <v-icon icon="mdi-dots-vertical" id="menu-activator" @click.stop="console.log('icon')"></v-icon>
-
-      <v-menu 
-        activator="#menu-activator"
-        location="bottom end"
-      >
-        <v-list>
-          <v-list-item
-            value="edit"
-            prepend-icon="mdi-pencil"
-            prepend-gap="15"
-            title="Editar"
-            class="text-primaryText"
-          ></v-list-item>
-
-          <v-list-item
-            value="edit"
-            prepend-icon="mdi-delete"
-            prepend-gap="15"
-            title="Excluir"
-            class="text-primaryText"
-            
-          ></v-list-item>
-        </v-list>
-      </v-menu>
     </v-card-title>
 
     <p 

@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <PageHeader
       title="Configurações"
       subtitle="Configurações do sistema"

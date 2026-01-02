@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <PageHeader
       title="Tarefas"
       subtitle="Visualize e gerencie as tarefas do seu projeto"

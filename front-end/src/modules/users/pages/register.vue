@@ -101,10 +101,32 @@
 </template>
 
 <script setup lang="ts">
-  import registerValidationSchema from '@/utils/validationSchemas/register.validationSchema';
   import { useField, useForm } from 'vee-validate';
   import { useDisplay } from 'vuetify';
+  import { toTypedSchema } from "@vee-validate/zod";
+  import * as z from 'zod';
 
+  const registerValidationSchema = toTypedSchema(
+    z.object({
+      name: z
+        .string({required_error: 'O nome deve ser informao.', invalid_type_error: 'O nome deve ser informao.'})
+        .min(1, {message: 'O nome deve ser informao.'}),
+      email: z
+        .string({required_error: 'Um email válido deve ser informado.', invalid_type_error: 'Um email válido deve ser informado.'})
+        .email({message: 'Um email válido deve ser informado.'})
+        .min(1, {message: 'Um email válido deve ser informado.'}),
+      password: z
+        .string({required_error: 'A senha deve ser informada.', invalid_type_error: 'A senha deve ser informada.'})
+        .min(1, {message: 'A senha deve ser informada.'}),
+      confirmPassword: z
+        .string({required_error: 'A senha deve ser confirmada', invalid_type_error: 'A senha deve ser confirmada'})
+        .min(1, {message: 'A senha deve ser confirmada'})
+        .refine((value) => value === password.value, {
+          message: 'As senhas devem ser iguais',
+          path: ['confirmPassword']
+        }),
+      })
+  )
   const display = useDisplay()
   const router = useRouter()
   const viewPassword = ref(false);
@@ -116,6 +138,6 @@
   const { value: confirmPassword } = useField('confirmPassword')
 
   const register = handleSubmit(async (values) => {
-    console.log(values)
+    console.log(errors)
   })
 </script>

@@ -75,8 +75,20 @@
 <script setup lang="ts">
   import { useDisplay } from 'vuetify';
   import { useField, useForm } from 'vee-validate';
-  import loginValidationSchema from '@/utils/validationSchemas/login.validationSchema';
-
+  import { toTypedSchema } from "@vee-validate/zod";
+  import * as z from 'zod';
+  
+  const loginValidationSchema = toTypedSchema(
+    z.object({
+      email: z
+        .string({required_error: 'Um email válido deve ser informado.', invalid_type_error: 'Um email válido deve ser informado.'})
+        .email({message: 'Um email válido deve ser informado.'})
+        .min(1, {message: 'Um email válido deve ser informado.'}),
+      password: z
+        .string({required_error: 'A senha deve ser informada.', invalid_type_error: 'A senha deve ser informada.'})
+        .min(1, {message: 'A senha deve ser informada.'}),
+    })
+  )
   const display = useDisplay()
   const router = useRouter()
   const viewPassword = ref(false);
