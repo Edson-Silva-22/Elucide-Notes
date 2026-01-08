@@ -11,11 +11,11 @@
     </v-card-title>
 
     <p 
-      class="text-secondaryText font-weight-bold text-body-2 px-4 d-flex flex-wrap mb-5 justify-space-between"
+      class="text-secondaryText font-weight-bold text-body-2 px-4 d-flex flex-wrap mb-5 justify-space-between ga-2"
     >
       <span>{{ code }}</span>
-      <span>Projeto 01</span>
       <span>{{ statusFormatted() }}</span>
+      <span>back end</span>
       <span>Criada em 1 set. 2025</span>
     </p>
 

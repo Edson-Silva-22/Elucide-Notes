@@ -12,11 +12,9 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     Header: typeof import('./components/Header.vue')['default']
-    NavBar: typeof import('./components/NavBar.vue')['default']
     PageHeader: typeof import('./components/PageHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SelectProject: typeof import('./modules/projects/pages/home.vue')['default']
     TaskCard: typeof import('./components/TaskCard.vue')['default']
   }
 }
