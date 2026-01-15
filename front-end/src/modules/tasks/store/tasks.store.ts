@@ -10,7 +10,7 @@ export interface Task {
   code: string
   title: string
   status: string
-  description: string
+  description: string | object | {}
   tags: {
     id: string
     name: string

@@ -30,7 +30,7 @@ import { TaskStatus } from '@/modules/tasks/store/tasks.store';
     code: string
     title: string
     status: string
-    description: string
+    description: string | object | {}
     tags: {
       id: string
       name: string

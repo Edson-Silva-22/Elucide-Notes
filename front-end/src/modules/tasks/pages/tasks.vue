@@ -14,6 +14,7 @@
         append-icon="mdi-plus"
         color="primary"
         :ripple="false"
+        @click="taskEditorOpened = true"
       >Criar Tarefa</v-btn>
     </div>
 
@@ -29,7 +30,7 @@
       max-width="300"
     ></v-text-field>
 
-    <v-row>
+    <v-row v-if="tasks && tasks.length > 0">
       <v-col v-for="(task, index) in tasks" cols="12" sm="6" md="4">
         <TaskCard
           :key="index"
@@ -41,6 +42,13 @@
         ></TaskCard>
       </v-col>
     </v-row>
+
+    <p v-else class="text-secondaryText text-center text-body-1 my-10">Nenhuma tarefa encontrada</p>
+
+    <TaskEditor
+      v-model="taskEditorOpened"
+      :task="taskSelected"
+    ></TaskEditor>
   </v-container>
 </template>
 
@@ -52,6 +60,8 @@
   const projectStore = useProjectStore()
   const taskStore = useTaskStore()
   const tasks = ref<Task[]>()
+  const taskSelected = ref<Task | null>(null)
+  const taskEditorOpened = ref(false)
 
   onBeforeMount(() => {
     const projectSelected = projectStore.projectSelected
