@@ -1,163 +1,27 @@
 <template>
-  <v-sheet class="mx-2 pa-4 mb-14" elevation="0">
-    <div 
-      v-if="!display.smAndDown.value"
-      :class="`overflow-auto`" 
-      style="border-radius: 5px;"
-    >
-      <div 
-        class="d-flex align-center ga-2" 
-        style="width: fit-content;"
-      >
-        <v-btn-toggle
-          variant="tonal"
-          color="primary"
-          mandatory
-          v-model="textStructureActived"
-        >
-          <template v-for="item in textStructures">
-            <v-menu
-              v-if="item.menuVariants && item.menuVariants.length > 0"
-              location="bottom end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :icon="item.icon"
-                  v-bind="props"
-                  size="small"
-                ></v-btn>
-              </template>
-    
-              <v-list>
-                <v-list-item
-                  v-for="(value, index) in item.menuVariants"
-                  :key="index"
-                  :prepend-icon="value.icon"
-                  :title="value.title"
-                  prepend-gap="10"
-                  @click="value.run()"
-                ></v-list-item>
-              </v-list>
-            </v-menu>
-            
-            <v-btn
-              v-else
-              :icon="item.icon"
-              v-bind="props"
-              size="small"
-              @click="item.run"
-            ></v-btn>
-          </template>
-        </v-btn-toggle>
-  
-        <v-btn-toggle
-          multiple
-          variant="tonal"
-          color="primary"
-        >
-          <template v-for="item in textFormating">
-            <v-menu
-              v-if="item.menuVariants && item.menuVariants.length > 0"
-              location="bottom end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :icon="item.icon"
-                  v-bind="props"
-                  size="small"
-                ></v-btn>
-              </template>
-    
-              <v-list>
-                <v-list-item
-                  v-for="(value, index) in item.menuVariants"
-                  :key="index"
-                  :prepend-icon="value.icon"
-                  :title="value.title"
-                  prepend-gap="10"
-                  @click="value.run()"
-                ></v-list-item>
-              </v-list>
-            </v-menu>
-            
-            <v-btn
-              v-else
-              :icon="item.icon"
-              v-bind="props"
-              size="small"
-              @click="item.run"
-            ></v-btn>
-          </template>
-        </v-btn-toggle>
-  
-        <v-btn-toggle
-          variant="tonal"
-          color="primary"
-          mandatory
-        >
-          <template v-for="item in textAlignment">
-            <v-menu
-              v-if="item.menuVariants && item.menuVariants.length > 0"
-              location="bottom end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :icon="item.icon"
-                  v-bind="props"
-                  size="small"
-                ></v-btn>
-              </template>
-    
-              <v-list>
-                <v-list-item
-                  v-for="(value, index) in item.menuVariants"
-                  :key="index"
-                  :prepend-icon="value.icon"
-                  :title="value.title"
-                  prepend-gap="10"
-                  @click="value.run()"
-                ></v-list-item>
-              </v-list>
-            </v-menu>
-            
-            <v-btn
-              v-else
-              :icon="item.icon"
-              v-bind="props"
-              size="small"
-              @click="item.run"
-            ></v-btn>
-          </template>
-        </v-btn-toggle>
-      </div>
-    </div>
-
-    <p 
-      class="text-body-1 text-break pa-0 mt-4"
-    >
-      <EditorContent :editor="editor" class="tiptap-editor"/>
-    </p>
-  </v-sheet>
-
-  <div 
-    class="bottom-navigation"
-    v-if="display.smAndDown.value"
+  <v-sheet 
+    class="mx-2 pa-4" 
+    elevation="0" 
+    rounded
+    style="margin-bottom: 50PX;"
   >
     <div 
-      :class="`overflow-auto hide-scrollbar`" 
-      style="border-radius: 5px;"
+      :class="{
+        'bottom-navigation': display.smAndDown.value,
+        'mb-4': !display.smAndDown.value
+      }"
     >
-      <div 
-        class="d-flex align-center ga-2" 
-        style="width: fit-content;"
-      >
-        <v-btn-toggle
-          variant="tonal"
-          color="primary"
-          mandatory
-          v-model="textStructureActived"
+      <v-slide-group>
+        <v-slide-group-item 
+          v-for="(editorTool, index) in editorTools"
+          :key="index"
         >
-          <template v-for="item in textStructures">
+          <v-sheet 
+            v-for="item in editorTool" 
+            :key="item.title"
+            class="bg-background"
+            height="50"
+          >
             <v-menu
               v-if="item.menuVariants && item.menuVariants.length > 0"
               location="bottom end"
@@ -167,17 +31,23 @@
                   :icon="item.icon"
                   v-bind="props"
                   size="small"
+                  rounded="0"
+                  height="100%"
+                  variant="tonal"
+                  :color="isActive(item.activeValue) ? 'primary' : ''"
                 ></v-btn>
               </template>
-    
-              <v-list>
+
+              <v-list class="pa-0">
                 <v-list-item
                   v-for="(value, index) in item.menuVariants"
                   :key="index"
+                  :value="value.value"
                   :prepend-icon="value.icon"
                   :title="value.title"
                   prepend-gap="10"
-                  @click="value.run()"
+                  @click="value.run(); item.activeValue = value.value"
+                  :class="isActive(value.value) ? 'bg-primary' : ''"
                 ></v-list-item>
               </v-list>
             </v-menu>
@@ -185,95 +55,24 @@
             <v-btn
               v-else
               :icon="item.icon"
-              v-bind="props"
               size="small"
+              rounded="0"
+              height="100%"
+              variant="tonal"
               @click="item.run"
+              :color="isActive(item.activeValue) ? 'primary' : ''"
             ></v-btn>
-          </template>
-        </v-btn-toggle>
-  
-        <v-btn-toggle
-          multiple
-          variant="tonal"
-          color="primary"
-        >
-          <template v-for="item in textFormating">
-            <v-menu
-              v-if="item.menuVariants && item.menuVariants.length > 0"
-              location="bottom end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :icon="item.icon"
-                  v-bind="props"
-                  size="small"
-                ></v-btn>
-              </template>
-    
-              <v-list>
-                <v-list-item
-                  v-for="(value, index) in item.menuVariants"
-                  :key="index"
-                  :prepend-icon="value.icon"
-                  :title="value.title"
-                  prepend-gap="10"
-                  @click="value.run()"
-                ></v-list-item>
-              </v-list>
-            </v-menu>
-            
-            <v-btn
-              v-else
-              :icon="item.icon"
-              v-bind="props"
-              size="small"
-              @click="item.run"
-            ></v-btn>
-          </template>
-        </v-btn-toggle>
-  
-        <v-btn-toggle
-          variant="tonal"
-          color="primary"
-          mandatory
-        >
-          <template v-for="item in textAlignment">
-            <v-menu
-              v-if="item.menuVariants && item.menuVariants.length > 0"
-              location="bottom end"
-            >
-              <template v-slot:activator="{ props }">
-                <v-btn
-                  :icon="item.icon"
-                  v-bind="props"
-                  size="small"
-                ></v-btn>
-              </template>
-    
-              <v-list>
-                <v-list-item
-                  v-for="(value, index) in item.menuVariants"
-                  :key="index"
-                  :prepend-icon="value.icon"
-                  :title="value.title"
-                  prepend-gap="10"
-                  @click="value.run()"
-                ></v-list-item>
-              </v-list>
-            </v-menu>
-            
-            <v-btn
-              v-else
-              :icon="item.icon"
-              v-bind="props"
-              size="small"
-              @click="item.run"
-            ></v-btn>
-          </template>
-        </v-btn-toggle>
-      </div>
-    </div>
+          </v-sheet>
+        </v-slide-group-item>
+      </v-slide-group>
   </div>
+
+    <div 
+      class="text-body-1 text-break pa-0"
+    >
+      <EditorContent :editor="editor" class="tiptap-editor"/>
+    </div>
+  </v-sheet>
 </template>
 
 <script setup lang="ts">
@@ -287,10 +86,18 @@
   interface EditorTools {
     title: string
     icon: string
+    activeValue: {
+      name?: string,
+      attributes?: Record<string, unknown>
+    }
     run?: () => void
     menuVariants?: {
       title: string
       icon?: string
+      value: {
+        name?: string,
+        attributes?: Record<string, unknown>
+      }
       run: () => void
     }[]
   }
@@ -329,26 +136,52 @@
     ],
     ...props.editorOptions
   })
-  const textStructureActived = ref('')
-  const textStructures = ref<EditorTools[]>([
+  const textStructures:EditorTools[] = [
     {
       title: 'Título',
       icon: 'mdi-format-title',
+      activeValue: {
+        name: 'heading',
+      },
       menuVariants: [
         {
           title: 'Título 1',
+          value: {
+            name: 'heading',
+            attributes: {
+              level: 1
+            }
+          },
           run: () => editor.chain().focus().toggleHeading({ level: 1 }).run()
         },
         {
           title: 'Título 2',
+          value: {
+            name: 'heading',
+            attributes: {
+              level: 2
+            }
+          },
           run: () => editor.chain().focus().toggleHeading({ level: 2 }).run()
         },
         {
           title: 'Título 3',
+          value: {
+            name: 'heading',
+            attributes: {
+              level: 3
+            }
+          },
           run: () => editor.chain().focus().toggleHeading({ level: 3 }).run()
         },
         {
           title: 'Título 4',
+          value: {
+            name: 'heading',
+            attributes: {
+              level: 4
+            }
+          },
           run: () => editor.chain().focus().toggleHeading({ level: 4 }).run()
         }
       ]
@@ -356,20 +189,32 @@
     {
       title: 'Listas',
       icon: 'mdi-format-list-bulleted',
+      activeValue: {
+        name: 'bulletList'
+      },
       menuVariants: [
         {
           title: 'Lista de Marcadores',
           icon: 'mdi-format-list-bulleted',
+          value: {
+            name: 'bulletList',
+          },
           run: () => editor.chain().focus().toggleBulletList().run()
         },
         {
           title: 'Lista Numerada',
           icon: 'mdi-format-list-numbered',
+          value: {
+            name: 'orderedList',
+          },
           run: () => editor.chain().focus().toggleOrderedList().run()
         },
         {
           title: 'Lista de Verificação',
           icon: 'mdi-format-list-checkbox',
+          value: {
+            name: 'taskList',
+          },
           run: () => editor.chain().focus().toggleTaskList().run()
         }
       ]
@@ -377,67 +222,116 @@
     {
       title: 'Bloco de Código',
       icon: 'mdi-code-block-tags',
+      activeValue: {
+        name: 'codeBlock'
+      },
       run: () => editor.chain().focus().toggleCodeBlock().run()
     }
-  ])
-  const textFormating = ref<EditorTools[]>([
+  ]
+  const textFormating:EditorTools[] = [
     {
       title: 'Negrito',
       icon: 'mdi-format-bold',
+      activeValue: {
+        name: 'bold'
+      },
       run: () => editor.chain().focus().toggleBold().run()
     },
     {
       title: 'Itálico',
       icon: 'mdi-format-italic',
+      activeValue: {
+        name: 'italic'
+      },
       run: () => editor.chain().focus().toggleItalic().run()
     },
     {
       title: 'Sublinhado',
       icon: 'mdi-format-underline',
+      activeValue: {
+        name: 'underline'
+      },
       run: () => editor.chain().focus().toggleUnderline().run()
     },
     {
       title: 'Riscado',
       icon: 'mdi-format-strikethrough',
+      activeValue: {
+        name: 'strike'
+      },
       run: () => editor.chain().focus().toggleStrike().run()
     },
     {
       title: 'Código',
       icon: 'mdi-xml',
+      activeValue: {
+        name: 'code'
+      },
       run: () => editor.chain().focus().toggleCode().run()
     },
     {
       title: 'Marcar',
       icon: 'mdi-marker',
+      activeValue: {
+        name: 'highlight',
+      },
       run: () => editor.chain().focus().toggleHighlight().run()
     },
     {
       title: 'Link',
       icon: 'mdi-link',
+      activeValue: {
+        name: 'link',
+      },
       run: () => editor.chain().focus().toggleLink().run()
     }
-  ])
-  const textAlignment = ref<EditorTools[]>([
+  ]
+  const textAlignment:EditorTools[] = [
     {
       title: 'Alinhar à esquerda',
       icon: 'mdi-format-align-left',
+      activeValue: {
+        attributes: {
+          textAlign: 'left'
+        }
+      },
       run: () => editor.chain().focus().setTextAlign('left').run()
     },
     {
       title: 'Alinhar ao centro',
       icon: 'mdi-format-align-center',
+      activeValue: {
+        attributes: {
+          textAlign: 'center'
+        }
+      },
       run: () => editor.chain().focus().setTextAlign('center').run()
     },
     {
       title: 'Alinhar à direita',
       icon: 'mdi-format-align-right',
+      activeValue: {
+        attributes: {
+          textAlign: 'right'
+        }
+      },
       run: () => editor.chain().focus().setTextAlign('right').run()
     },
     {
       title: 'Justificar',
       icon: 'mdi-format-align-justify',
+      activeValue: {
+        attributes: {
+          textAlign: 'justify'
+        }
+      },
       run: () => editor.chain().focus().setTextAlign('justify').run()
     }
+  ]
+  const editorTools = ref([
+    textStructures,
+    textFormating,
+    textAlignment
   ])
 
   const handleViewportChange = () => {
@@ -455,11 +349,21 @@
     document.documentElement.style.setProperty('--keyboard-offset', `${offset}px`)
   }
 
+  function isActive({ name, attributes }: { name?: string; attributes?: Record<string, any> }) {
+    if (name) return editor.isActive(name, attributes)
+    if (attributes) return editor.isActive(attributes)
+    return false
+  }
+
   onMounted(() => {
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportChange)
       window.visualViewport.addEventListener('scroll', handleViewportChange)
     }
+  })
+
+  onBeforeUnmount(() => {
+    editor.destroy()
   })
 
   onBeforeUnmount(() => {
@@ -563,16 +467,10 @@
     width: 100%;
     z-index: 1000;
     background-color: rgb(var(--v-theme-background));
-    touch-action: none;
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-  .bottom-navigation > div {
-    touch-action: pan-x; /* Permite scroll horizontal explicitamente */
-    display: flex;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+    bottom: 0px;
+    left: 0px;
   }
 </style>
