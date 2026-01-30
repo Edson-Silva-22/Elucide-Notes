@@ -7,6 +7,7 @@
       title="Editor de Tarefas"
       color="background"
       class="pb-4"
+      ref="card"
     >
       <template v-slot:append>
         <v-btn
@@ -33,7 +34,7 @@
       </div>
 
       <p class="text-secondaryText text-body-2 mt-5 mx-2">Descrição</p>
-      <TipTapEditor :editorOptions="descriptionEditorOptions"/>
+      <TipTapEditor :editorOptions="descriptionEditorOptions" @editor-update="(v) => editorJson = v"/>
     </v-card>
   </v-dialog>
 </template>
@@ -41,6 +42,7 @@
 <script setup lang="ts">
   import type { Task } from '@/modules/tasks/store/tasks.store';
   import { type EditorOptions } from '@tiptap/vue-3'
+  import type { VCard } from 'vuetify/components';
 
   const props = defineProps<{
     modelValue: boolean
@@ -60,4 +62,22 @@
       task.value.description = editor.getJSON()
     }
   }
+  const editorJson = ref(null)
+  const card = ref<InstanceType<typeof VCard> | null>(null)
+
+  watch(editorJson, async () => {
+    //Espera o Vue terminar de atualizar o HTML antes de executar o que vem a seguir.
+    await nextTick(); // Essencial para o card calcular a nova altura do conteúdo
+    
+    //Obtém a referência direta ao elemento HTML raiz desse componente.
+    const cardElement = card.value?.$el as HTMLElement;
+
+    if (cardElement) {
+      // Como o scroll está no próprio v-card (conforme seu inspetor):
+      cardElement.scrollTo({
+        top: cardElement.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  });
 </script>

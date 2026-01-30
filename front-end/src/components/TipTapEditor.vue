@@ -3,7 +3,7 @@
     class="mx-2 pa-4" 
     elevation="0" 
     rounded
-    style="margin-bottom: 50PX;"
+    style="margin-bottom: 50px;"
   >
     <div 
       :class="{
@@ -34,7 +34,7 @@
                   rounded="0"
                   height="100%"
                   variant="tonal"
-                  :color="isActive(item.activeValue) ? 'primary' : ''"
+                  :color="item.activeValue && isActive(item) ? 'primary' : ''"
                 ></v-btn>
               </template>
 
@@ -47,7 +47,7 @@
                   :title="value.title"
                   prepend-gap="10"
                   @click="value.run(); item.activeValue = value.value"
-                  :class="isActive(value.value) ? 'bg-primary' : ''"
+                  :class="isActive({ ...item, activeValue: value.value }) ? 'bg-primary' : ''"
                 ></v-list-item>
               </v-list>
             </v-menu>
@@ -60,7 +60,7 @@
               height="100%"
               variant="tonal"
               @click="item.run"
-              :color="isActive(item.activeValue) ? 'primary' : ''"
+              :color="isActive(item) ? 'primary' : ''"
             ></v-btn>
           </v-sheet>
         </v-slide-group-item>
@@ -86,11 +86,12 @@
   interface EditorTools {
     title: string
     icon: string
-    activeValue: {
+    activeValue?: {
       name?: string,
       attributes?: Record<string, unknown>
     }
-    run?: () => void
+    run?: () => void,
+    can?: () => boolean,
     menuVariants?: {
       title: string
       icon?: string
@@ -105,6 +106,8 @@
   const props = defineProps<{
     editorOptions: Partial<EditorOptions>
   }>()
+  const emits = defineEmits(['editorUpdate'])
+
   const display = useDisplay()
   const editor = new Editor({
     extensions: [
@@ -276,14 +279,6 @@
         name: 'highlight',
       },
       run: () => editor.chain().focus().toggleHighlight().run()
-    },
-    {
-      title: 'Link',
-      icon: 'mdi-link',
-      activeValue: {
-        name: 'link',
-      },
-      run: () => editor.chain().focus().toggleLink().run()
     }
   ]
   const textAlignment:EditorTools[] = [
@@ -328,10 +323,25 @@
       run: () => editor.chain().focus().setTextAlign('justify').run()
     }
   ]
+  const undoRedo: EditorTools[] = [
+    {
+      title: 'Desfazer',
+      icon: 'mdi-undo',
+      run: () => editor.chain().focus().undo().run(),
+      can: () => editor.can().undo()
+    },
+    {
+      title: 'Refazer',
+      icon: 'mdi-redo',
+      run: () => editor.chain().focus().redo().run(),
+      can: () => editor.can().redo()
+    }
+  ]
   const editorTools = ref([
+    undoRedo,
     textStructures,
     textFormating,
-    textAlignment
+    textAlignment,
   ])
 
   const handleViewportChange = () => {
@@ -349,13 +359,23 @@
     document.documentElement.style.setProperty('--keyboard-offset', `${offset}px`)
   }
 
-  function isActive({ name, attributes }: { name?: string; attributes?: Record<string, any> }) {
-    if (name) return editor.isActive(name, attributes)
-    if (attributes) return editor.isActive(attributes)
+  function isActive(item: EditorTools) {
+    if (item.activeValue && item.activeValue.name) {
+      return editor.isActive(item.activeValue.name, item.activeValue.attributes)
+    }
+
+    if (item.activeValue && item.activeValue.attributes) return editor.isActive(item.activeValue.attributes)
+
+    if (item.can) return item.can()
+
     return false
   }
 
   onMounted(() => {
+    editor.on('update', () => {
+      emits('editorUpdate', editor.getJSON())
+    })
+
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handleViewportChange)
       window.visualViewport.addEventListener('scroll', handleViewportChange)
@@ -364,9 +384,6 @@
 
   onBeforeUnmount(() => {
     editor.destroy()
-  })
-
-  onBeforeUnmount(() => {
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', handleViewportChange)
       window.visualViewport.removeEventListener('scroll', handleViewportChange)
