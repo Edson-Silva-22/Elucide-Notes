@@ -4,21 +4,21 @@
     fullscreen
   >
     <v-card
-      title="Editor de Tarefas"
       color="background"
       class="pb-4"
       ref="card"
     >
-      <template v-slot:append>
+      <div class="d-flex justify-space-between align-center w-100 mb-4 py-2">
+        <v-card-title primary-title class="px-2">Editor de Tarefas</v-card-title>
+        
         <v-btn
           icon="mdi-close"
           variant="text"
           @click="model = !model"
           v-ripple="false"
         ></v-btn>
-      </template>
+      </div>
 
-      
       <p class="text-secondaryText text-body-2 mx-2">Título</p>
       <div>
         <v-text-field
@@ -80,4 +80,25 @@
       });
     }
   });
+
+  function onBackButton() {
+    model.value = false
+  }
+
+  watch(model, (isOpen) => {
+    if (isOpen) {
+      // history é um objeto nativo do navegador, parte da Web History API. Ele serve pra controlar o histórico de navegação da página.
+      //Adiciona um novo estado sem recarregar a página.
+      history.pushState({ dialog: true }, '')
+    }
+  })
+
+  onMounted(() => {
+    //Ele dispara quando o usuário aperta voltar ou avançar na página.
+    window.addEventListener('popstate', onBackButton)
+  })
+
+  onBeforeUnmount(() => {
+    window.removeEventListener('popstate', onBackButton)
+  })
 </script>
