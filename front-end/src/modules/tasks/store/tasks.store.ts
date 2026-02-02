@@ -9,7 +9,7 @@ export interface Task {
   id: string
   code: string
   title: string
-  status: string
+  status: TaskStatus
   description: string | object | {}
   tags: {
     id: string

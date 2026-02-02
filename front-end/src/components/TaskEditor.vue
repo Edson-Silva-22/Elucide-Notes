@@ -9,7 +9,7 @@
       ref="card"
     >
       <div class="d-flex justify-space-between align-center w-100 mb-4 py-2">
-        <v-card-title primary-title class="px-2">Editor de Tarefas</v-card-title>
+        <v-card-title primary-title class="px-2">{{ dialogTitle }}</v-card-title>
         
         <v-btn
           icon="mdi-close"
@@ -29,7 +29,7 @@
           flat
           max-width="400"
           class="mx-2"
-          v-model="title"
+          v-model="task.title"
         ></v-text-field>
       </div>
 
@@ -40,23 +40,29 @@
 </template>
 
 <script setup lang="ts">
-  import type { Task } from '@/modules/tasks/store/tasks.store';
+  import { TaskStatus, type Task } from '@/modules/tasks/store/tasks.store';
   import { type EditorOptions } from '@tiptap/vue-3'
   import type { VCard } from 'vuetify/components';
 
   const props = defineProps<{
     modelValue: boolean
     task: Task | null
+    dialogTitle: string
   }>()
   const emit = defineEmits(['update:modelValue'])
+
   const model = computed({
     get: () => props.modelValue,
     set: (value) => emit('update:modelValue', value)
   })
-  const task = ref({...props.task})
-  const title = ref(props.task?.title ?? 'Nova Tarefa')
+  const task = ref<Partial<Task>>({
+    title: 'Nova Tarefa',
+    description: 'Nenhuma descrição informada',
+    status: TaskStatus.NOT_STARTED,
+    tags: []
+  })
   const descriptionEditorOptions: Partial<EditorOptions> = {
-    content: props.task?.title ?? 'Nenhuma descrição informada',
+    content: task.value.description,
     autofocus: true,
     onUpdate: ({ editor }) => {
       task.value.description = editor.getJSON()
@@ -90,6 +96,12 @@
       // history é um objeto nativo do navegador, parte da Web History API. Ele serve pra controlar o histórico de navegação da página.
       //Adiciona um novo estado sem recarregar a página.
       history.pushState({ dialog: true }, '')
+      
+      task.value = props.task ? { ...props.task } : {
+        title: 'Nova Tarefa',
+        description: 'Nenhuma descrição informada',
+      }
+      descriptionEditorOptions.content = task.value.description
     }
   })
 

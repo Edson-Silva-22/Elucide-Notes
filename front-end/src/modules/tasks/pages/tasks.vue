@@ -14,7 +14,7 @@
         append-icon="mdi-plus"
         color="primary"
         :ripple="false"
-        @click="taskEditorOpened = true"
+        @click="taskSelected = null; dialogTitle = 'Nova Tarefa'; taskEditorOpened = true"
       >Criar Tarefa</v-btn>
     </div>
 
@@ -39,6 +39,7 @@
           :status="task.status"
           :description="task.description"
           :tags="task.tags"
+          @click="taskSelected = task; dialogTitle = 'Editar Tarefa';taskEditorOpened = true"
         ></TaskCard>
       </v-col>
     </v-row>
@@ -48,6 +49,7 @@
     <TaskEditor
       v-model="taskEditorOpened"
       :task="taskSelected"
+      :dialogTitle
     ></TaskEditor>
   </v-container>
 </template>
@@ -62,6 +64,7 @@
   const tasks = ref<Task[]>()
   const taskSelected = ref<Task | null>(null)
   const taskEditorOpened = ref(false)
+  const dialogTitle = ref('')
 
   onBeforeMount(() => {
     const projectSelected = projectStore.projectSelected

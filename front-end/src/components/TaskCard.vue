@@ -1,6 +1,5 @@
 <template>
   <v-card
-    @click="console.log('card')"
     :ripple="false"
     flat
   >
