@@ -1,10 +1,11 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { handleError } from '../../utils/methods/handleError';
 
 @Injectable()
 export class UsersService {
@@ -12,12 +13,6 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
   ) {}
-
-  handleError(error: unknown) {
-    console.error(error)
-    if (error instanceof HttpException) throw error
-    throw new InternalServerErrorException('Erro interno do servidor. Tente novamente mais tarde.')
-  }
 
   async create(createUserDto: CreateUserDto) {
     try {
@@ -32,7 +27,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      this.handleError(error)
+      handleError(error)
     }
   }
 
@@ -41,7 +36,7 @@ export class UsersService {
       const findAllUsers = await this.userModel.find().select("-password");
       return findAllUsers;
     } catch (error) {
-      this.handleError(error)
+      handleError(error)
     }
   }
 
@@ -52,7 +47,7 @@ export class UsersService {
 
       return findUser;
     } catch (error) {
-      this.handleError(error)
+      handleError(error)
     }
   }
 
@@ -68,7 +63,7 @@ export class UsersService {
 
       return updateUser;
     } catch (error) {
-      this.handleError(error)
+      handleError(error)
     }
   }
 
@@ -79,7 +74,7 @@ export class UsersService {
 
       return "Usuário deletado com sucesso."
     } catch (error) {
-      this.handleError(error)
+      handleError(error)
     }
   }
 }
