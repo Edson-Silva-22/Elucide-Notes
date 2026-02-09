@@ -9,6 +9,9 @@ const projectsRouter: RouteRecordRaw[] = [
       {
         path: "",
         name: "home",
+        meta: {
+          requiresAuth: true,
+        },
         component: () => import("@/modules/projects/pages/home.vue"),
       }
     ],

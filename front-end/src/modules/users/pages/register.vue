@@ -2,7 +2,7 @@
   <v-container fluid class="d-flex pa-0 flex-column-reverse flex-sm-row">
     <v-sheet
       class="d-flex align-sm-center justify-center v-sheet"
-      :height="display.xs.value ? '80vh' : '100vh'"
+      :height="display.xs.value ? '100%' : '100vh'"
       :width="display.xs.value ? '100%' : '50%'"
       color="background"
     >
@@ -28,6 +28,7 @@
 
         <v-text-field
           name="email"
+          type="email"
           placeholder="informe seu email"
           prepend-inner-icon="mdi-at"
           variant="solo"
@@ -105,6 +106,7 @@
   import { useDisplay } from 'vuetify';
   import { toTypedSchema } from "@vee-validate/zod";
   import * as z from 'zod';
+  import { useUserStore } from '../store/user.store';
 
   const registerValidationSchema = toTypedSchema(
     z.object({
@@ -129,6 +131,7 @@
   )
   const display = useDisplay()
   const router = useRouter()
+  const userStore = useUserStore()
   const viewPassword = ref(false);
   const viewConfirmPassword = ref(false)
   const { handleSubmit, errors } = useForm({ validationSchema: registerValidationSchema })
@@ -138,6 +141,11 @@
   const { value: confirmPassword } = useField('confirmPassword')
 
   const register = handleSubmit(async (values) => {
-    console.log(errors)
+    const response = await userStore.create({
+      name: values.name,
+      email: values.email,
+      password: values.password
+    })
+    if (response) router.push('/login')
   })
 </script>

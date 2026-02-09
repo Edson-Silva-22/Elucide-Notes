@@ -46,6 +46,7 @@
         height="56"
         color="primary"
         prepend-gap="15"
+        @click="menuItem.onClick && menuItem.onClick()"
       >
         <template v-slot:prepend>
           <v-icon 
@@ -61,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+  import { useAuthStore } from '@/modules/auth/store/auth.store';
   import { useProjectStore } from '@/modules/projects/store/projects.store';
 
   export interface Menu {
@@ -70,10 +72,12 @@
     appendIcon?: string
     route?: string
     requiresProject?: boolean
+    onClick?: () => void
   }
 
   const router = useRouter();
   const projectStore = useProjectStore();
+  const authStore = useAuthStore();
   const drawer = ref(false);
   const projectSelected = computed(() => projectStore.projectSelected)
 
@@ -109,7 +113,10 @@
       title: 'Sair',
       value: 'logout',
       prependIcon: 'mdi-logout',
-      route: '/login'
+      onClick: async() => {
+        await authStore.logout()
+        router.push('/login')
+      }
     }
   ])
   const filteredMenu = computed(() => {
