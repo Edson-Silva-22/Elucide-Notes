@@ -16,6 +16,7 @@
 
         <v-text-field
           name="email"
+          type="email"
           placeholder="informe seu email"
           prepend-inner-icon="mdi-account"
           variant="solo"
@@ -45,6 +46,7 @@
           color="primary" 
           class="mt-2 mx-auto d-block" 
           height="48"
+          :loading="authStore.loading"
           @click="login"
         >Entrar</v-btn>
 
@@ -77,6 +79,7 @@
   import { useField, useForm } from 'vee-validate';
   import { toTypedSchema } from "@vee-validate/zod";
   import * as z from 'zod';
+  import { useAuthStore } from '../store/auth.store';
   
   const loginValidationSchema = toTypedSchema(
     z.object({
@@ -91,12 +94,14 @@
   )
   const display = useDisplay()
   const router = useRouter()
+  const authStore = useAuthStore()
   const viewPassword = ref(false);
   const { handleSubmit, errors } = useForm({ validationSchema: loginValidationSchema });
   const { value: email } = useField('email')
   const { value: password } = useField('password')
 
   const login = handleSubmit(async (values) => {
-    router.push('/')
+    const response = await authStore.login(values.email, values.password)
+    if (response)router.push('/')
   })
 </script>
