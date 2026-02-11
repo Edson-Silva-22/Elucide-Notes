@@ -15,6 +15,7 @@
         <p class="text-secondaryText text-center mb-10">Clareza para suas ideias.</p>
 
         <v-text-field
+          id="email-input"
           name="email"
           type="email"
           placeholder="informe seu email"
@@ -28,6 +29,7 @@
         ></v-text-field>
 
         <v-text-field
+          id="password-input"
           name="password"
           :type="viewPassword ? 'text' : 'password'"
           placeholder="informe sua senha"
@@ -43,6 +45,7 @@
         ></v-text-field>
 
         <v-btn 
+          id="login-submit"
           color="primary" 
           class="mt-2 mx-auto d-block" 
           height="48"
