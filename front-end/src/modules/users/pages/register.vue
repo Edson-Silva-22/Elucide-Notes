@@ -16,6 +16,7 @@
 
         <v-text-field
           name="name"
+          id="name-input"
           placeholder="informe seu nome"
           prepend-inner-icon="mdi-account"
           variant="solo"
@@ -28,6 +29,7 @@
 
         <v-text-field
           name="email"
+          id="email-input"
           type="email"
           placeholder="informe seu email"
           prepend-inner-icon="mdi-at"
@@ -41,6 +43,7 @@
 
         <v-text-field
           name="password"
+          id="password-input"
           :type="viewPassword ? 'text' : 'password'"
           placeholder="informe sua senha"
           prepend-inner-icon="mdi-lock"
@@ -56,6 +59,7 @@
 
         <v-text-field
           name="confirmPassword"
+          id="confirmPassword-input"
           :type="viewConfirmPassword ? 'text' : 'password'"
           placeholder="confirme sua senha"
           prepend-inner-icon="mdi-lock"
@@ -71,17 +75,18 @@
 
         <v-btn 
           color="primary" 
+          id="register-button"
           class="mt-2 mx-auto d-block" 
           height="48"
           @click="register"
-        >Comfirma</v-btn>
-
+        >Confirmar</v-btn>
         <v-btn 
           color="primary" 
+          id="back-button"
           class="mt-2 mx-auto d-block" 
           height="48"
           variant="text"
-          @click="router.back()"
+          @click="router.push('/login')"
         >voltar</v-btn>
       </v-sheet>
     </v-sheet>
@@ -111,8 +116,8 @@
   const registerValidationSchema = toTypedSchema(
     z.object({
       name: z
-        .string({required_error: 'O nome deve ser informao.', invalid_type_error: 'O nome deve ser informao.'})
-        .min(1, {message: 'O nome deve ser informao.'}),
+        .string({required_error: 'O nome deve ser informado.', invalid_type_error: 'O nome deve ser informado.'})
+        .min(1, {message: 'O nome deve ser informado.'}),
       email: z
         .string({required_error: 'Um email válido deve ser informado.', invalid_type_error: 'Um email válido deve ser informado.'})
         .email({message: 'Um email válido deve ser informado.'})
