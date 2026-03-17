@@ -23,7 +23,7 @@ export class AuthService {
       const passwordIsCorrect = await bcrypt.compare(createAuthDto.password, userIsExist.password);
       if (!passwordIsCorrect) throw new BadRequestException('Senha incorreta.')
 
-      const payload = { sub: userIsExist._id, username: userIsExist.name };
+      const payload = { sub: userIsExist._id, username: userIsExist.name, role: userIsExist.role };
       return {
         token: await this.jwtService.signAsync(payload),
       };

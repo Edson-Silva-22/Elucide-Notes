@@ -1,21 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../../users.service';
-import { CreateUserDto } from '../../dto/create-user.dto';
-import { UpdateUserDto } from '../../dto/update-user.dto';
 import { getModelToken } from '@nestjs/mongoose';
 import { User } from '../../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
-
-const mockUserModel = {
-  find: jest.fn(),
-  findOne: jest.fn(),
-  create: jest.fn(),
-  findById: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
-  findByIdAndDelete: jest.fn()
-}
+import { createUserDtoMock, mockUserModel, updateUserDtoMock, userMock } from '../mocks/users.mocks';
 
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
@@ -24,24 +14,6 @@ jest.mock('bcrypt', () => ({
 describe('UsersService', () => {
   let service: UsersService;
   let userModel: Model<User>;
-  const userMock = {
-    _id: '1',
-    name: 'Alex',
-    email: 'alex@email',
-    cpf: '12345678909',
-    phone: '123456789',
-    createdAt: new Date(),
-    updatedAt: new Date()
-  }
-  const createUserDto: CreateUserDto = {
-    name: 'Alex',
-    email: 'alex@email',
-    password: '123456',
-  }
-  const updateUserDto: UpdateUserDto = {
-    name: 'Alex Silva',
-    password: 'new password'
-  }
 
   beforeAll( async () => {
     // Criar um módulo de teste isolado, simulando o ambiente real de injeção de dependências do NestJS
@@ -56,7 +28,7 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    userModel = module.get(getModelToken(User.name));
+    userModel = module.get<Model<User>>(getModelToken(User.name));
   });
 
   afterEach(() => {
@@ -71,47 +43,47 @@ describe('UsersService', () => {
     const hashedPassword = 'hashedPassword';
 
     it('should create a new user', async () => {
-      mockUserModel.findOne.mockResolvedValue(null);
+      (userModel.findOne as jest.Mock).mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
       mockUserModel.create.mockResolvedValue({
-        ...createUserDto, 
+        ...createUserDtoMock, 
         password: hashedPassword,
         toObject: jest.fn().mockReturnValue({
-          name: createUserDto.name,
-          email: createUserDto.email
+          name: createUserDtoMock.name,
+          email: createUserDtoMock.email
         }),
       })
 
-      const result = await service.create(createUserDto);
+      const result = await service.create(createUserDtoMock);
 
       expect(mockUserModel.findOne).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDto.email })
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDtoMock.email })
       
       expect(mockUserModel.create).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.create).toHaveBeenCalledWith({...createUserDto, password: hashedPassword})
+      expect(mockUserModel.create).toHaveBeenCalledWith({...createUserDtoMock, password: hashedPassword})
 
       expect(result).toEqual({
-        name: createUserDto.name,
-        email: createUserDto.email
+        name: createUserDtoMock.name,
+        email: createUserDtoMock.email
       })
     })
 
     it('should throw an error if email already exists', async () => {
       mockUserModel.findOne.mockResolvedValue(userMock);
 
-      await expect(service.create(createUserDto)).rejects.toThrow(BadRequestException)
+      await expect(service.create(createUserDtoMock)).rejects.toThrow(BadRequestException)
 
       expect(mockUserModel.findOne).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDto.email })
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDtoMock.email })
     })
 
     it('should handle internal server error', async () => {
       mockUserModel.findOne.mockRejectedValue(new InternalServerErrorException('Internal Server Error'));
 
-      await expect(service.create(createUserDto)).rejects.toThrow(InternalServerErrorException)
+      await expect(service.create(createUserDtoMock)).rejects.toThrow(InternalServerErrorException)
 
       expect(mockUserModel.findOne).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDto.email })
+      expect(mockUserModel.findOne).toHaveBeenCalledWith({ email: createUserDtoMock.email })
     })
   })
 
@@ -180,14 +152,14 @@ describe('UsersService', () => {
     it('should update a user', async () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashedNewPassword');
       mockUserModel.findByIdAndUpdate.mockReturnValue({
-        select: jest.fn().mockResolvedValue(updateUserDto)
+        select: jest.fn().mockResolvedValue(updateUserDtoMock)
       });
 
-      const result = await service.update('userId', updateUserDto);
+      const result = await service.update('userId', updateUserDtoMock);
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDto, { new: true })
-      expect(result).toEqual(updateUserDto)
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDtoMock, { new: true })
+      expect(result).toEqual(updateUserDtoMock)
     })
 
     it('should throw an error if user not found', async () => {
@@ -195,10 +167,10 @@ describe('UsersService', () => {
         select: jest.fn().mockResolvedValue(null)
       });
 
-      await expect(service.update('userId', updateUserDto)).rejects.toThrow(NotFoundException);
+      await expect(service.update('userId', updateUserDtoMock)).rejects.toThrow(NotFoundException);
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDto, { new: true })
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDtoMock, { new: true })
     })
 
     it('should handle internal server error', async () => {
@@ -206,10 +178,10 @@ describe('UsersService', () => {
         select: jest.fn().mockRejectedValue(new InternalServerErrorException('DB Error'))
       });
 
-      await expect(service.update('userId', updateUserDto)).rejects.toThrow(InternalServerErrorException)
+      await expect(service.update('userId', updateUserDtoMock)).rejects.toThrow(InternalServerErrorException)
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledTimes(1)
-      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDto, { new: true })
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith('userId', updateUserDtoMock, { new: true })
     })
   })
 

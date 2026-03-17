@@ -41,11 +41,11 @@ describe('Auth Endpoints', () => {
   })
 
   beforeEach(async () => {
-    await connection.useDb('elucide-notes-tests').collection('users').deleteMany({});
+    await connection.useDb(process.env.MONGODB_DB_NAME_TESTS ||'elucide-notes-tests').collection('users').deleteMany({});
   })
   
   afterAll(async () => {
-    await connection.useDb('elucide-notes-tests').dropDatabase();
+    await connection.useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests').dropDatabase();
     await connection.close();
     await app.close();
   });

@@ -1,8 +1,9 @@
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { Model } from "mongoose";
-import { AuthorizationGuard } from "../../authorization.guard";
+import { AuthorizationGuard } from "../../guard/authorization.guard";
 import { User } from "src/modules/users/entities/user.entity";
+import { Reflector } from "@nestjs/core";
 
 const mockUserModel = {
   findById: jest.fn()
@@ -10,6 +11,7 @@ const mockUserModel = {
 describe('AuthorizationGuard', () => {
   let authorizationGuard: AuthorizationGuard;
   let jwtService: JwtService;
+  let reflector: Reflector;
   let userModel: typeof mockUserModel;
   const createMockExecutionContext = (req: Partial<Request>) =>
   ({
@@ -25,7 +27,8 @@ describe('AuthorizationGuard', () => {
     jest.clearAllMocks();
     jwtService = new JwtService({ secret: 'secret' });
     userModel = mockUserModel;
-    authorizationGuard = new AuthorizationGuard(userModel as unknown as Model<User>,  jwtService);
+    reflector = new Reflector();
+    authorizationGuard = new AuthorizationGuard(userModel as unknown as Model<User>, reflector, jwtService);
   });
 
   it('should be defined', () => {
@@ -40,13 +43,24 @@ describe('AuthorizationGuard', () => {
         },
       } as unknown as Request);
 
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+
       jest.spyOn(authorizationGuard, 'extractTokenFromHeader').mockReturnValue('valid-admin-token');
 
       jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue({ sub: 'admin-user-id' });
 
-      userModel.findById.mockResolvedValue({ id: 'admin-user-id', isAdmin: true });
+      userModel.findById.mockResolvedValue({ id: 'admin-user-id', role: 'admin' });
 
       const result = await authorizationGuard.canActivate(context);
+
+      expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(1);
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
+        'roles',
+        [
+          context.getHandler(),
+          context.getClass(),
+        ]
+      );
 
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledTimes(1);
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledWith(context.switchToHttp().getRequest());
@@ -68,9 +82,20 @@ describe('AuthorizationGuard', () => {
         headers: {},
       } as unknown as Request);
 
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+
       jest.spyOn(authorizationGuard, 'extractTokenFromHeader').mockReturnValue(undefined);
 
       await expect(authorizationGuard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+
+      expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(1);
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
+        'roles',
+        [
+          context.getHandler(),
+          context.getClass(),
+        ]
+      );
 
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledTimes(1);
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledWith(context.switchToHttp().getRequest());
@@ -83,13 +108,24 @@ describe('AuthorizationGuard', () => {
         }
       } as unknown as Request);
 
+      jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+
       jest.spyOn(authorizationGuard, 'extractTokenFromHeader').mockReturnValue('valid-user-token');
 
       jest.spyOn(jwtService, 'verifyAsync').mockResolvedValue({ sub: 'regular-user-id' });
 
-      userModel.findById.mockResolvedValue({ id: 'regular-user-id', isAdmin: false });
+      userModel.findById.mockResolvedValue({ id: 'regular-user-id', role: 'user' });
 
       await expect(authorizationGuard.canActivate(context)).rejects.toThrow(UnauthorizedException);
+
+      expect(reflector.getAllAndOverride).toHaveBeenCalledTimes(1);
+      expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
+        'roles',
+        [
+          context.getHandler(),
+          context.getClass(),
+        ]
+      );
 
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledTimes(1);
       expect(authorizationGuard.extractTokenFromHeader).toHaveBeenCalledWith(context.switchToHttp().getRequest());

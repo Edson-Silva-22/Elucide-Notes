@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProjectAccessControlModule } from './modules/project-access-control/project-access-control.module';
+import { ProjectsModule } from './modules/projects/projects.module';
 
 @Module({
   imports: [
@@ -13,7 +15,9 @@ import { AuthModule } from './modules/auth/auth.module';
       dbName: process.env.MONGODB_DB_NAME || 'elucide-notes-tests'
     }),
     UsersModule,
-    AuthModule
+    AuthModule,
+    ProjectsModule,
+    ProjectAccessControlModule
   ],
   controllers: [],
   providers: [],
