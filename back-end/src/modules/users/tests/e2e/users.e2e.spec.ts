@@ -6,13 +6,45 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { getConnectionToken, MongooseModule } from "@nestjs/mongoose";
 import { AppModule } from "../../../../app.module";
 import request from 'supertest';
-import { JwtService } from "@nestjs/jwt";
+import { ConfigModule } from "@nestjs/config";
+
+export async function createTestUser(
+  app: INestApplication, 
+  createUserDto: CreateUserDto, 
+  dbConnection: Connection,
+  role: string = 'user',
+) {
+  const response = await request(app.getHttpServer())
+    .post('/users')
+    .send(createUserDto)
+    .expect(201);
+
+  expect(response.body).toMatchObject({
+    name: createUserDto.name,
+    email: createUserDto.email,
+  });
+
+  if (role === 'admin') {
+    await dbConnection.useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests').collection('users').updateOne(
+      { _id: new Types.ObjectId(response.body._id) },
+      { $set: { role: 'admin' } }
+    );
+  }
+
+  const login = await request(app.getHttpServer())
+    .post('/auth')
+    .send({ email: createUserDto.email, password: createUserDto.password })
+    .expect(201);
+  
+  return {
+    token: login.get('Set-Cookie')![0].split(';')[0].split('=')[1],
+    user: response.body,
+  };
+}
 
 describe('Users Endpoints', () => {
   let app: INestApplication;
   let connection: Connection;
-  let jwtService: JwtService;
-  let jwtToken: string;
   const createUserDto: CreateUserDto = {
     name: 'Alex',
     email: 'alex@email.com',
@@ -26,7 +58,12 @@ describe('Users Endpoints', () => {
   beforeAll(async () => {
     const moduleTest: TestingModule = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot('mongodb://localhost/elucide-notes-test'),
+        ConfigModule.forRoot({
+          isGlobal: true
+        }),
+        MongooseModule.forRoot(process.env.MONGODB_URI_TESTS || 'mongodb://localhost:27017/', {
+          dbName: process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests'
+        }),
         AppModule
       ]
     }).compile();
@@ -40,50 +77,21 @@ describe('Users Endpoints', () => {
     )
     connection = moduleTest.get<Connection>(getConnectionToken())
     await app.init();
-
-    jwtService = moduleTest.get(JwtService);
   })
 
   beforeEach(async () => {
-    await connection.useDb('elucide-notes-test').collection('users').deleteMany({});
+    await connection.useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests').collection('users').deleteMany({});
   })
   
   afterAll(async () => {
-    await connection.useDb('elucide-notes-test').dropDatabase();
+    await connection.useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests').dropDatabase();
     await connection.close();
     await app.close();
   });
 
-  async function createTestUser(
-    app: INestApplication, 
-    createUserDto: CreateUserDto, 
-    jwtService: JwtService,
-  ) {
-    const response = await request(app.getHttpServer())
-      .post('/users')
-      .send(createUserDto)
-      .expect(201);
-
-    expect(response.body).toMatchObject({
-      name: createUserDto.name,
-      email: createUserDto.email,
-    });
-
-    // Cria o token
-    jwtToken = await jwtService.signAsync(
-      { sub: response.body._id, username: response.body.name }, // payload
-      { secret: process.env.JWT_SECRET }, // mesma secret usada no AuthGuard
-    );
-
-    return {
-      token: jwtToken,
-      user: response.body,
-    };
-  }
-
   describe('POST /users', () => {
     it('should create a user', async () => {
-      const response = await createTestUser(app, createUserDto, jwtService);
+      const response = await createTestUser(app, createUserDto, connection);
 
       expect(response.user).toMatchObject({
         name: createUserDto.name,
@@ -92,7 +100,7 @@ describe('Users Endpoints', () => {
     })
 
     it('should fail when trying to create a user with an already registered email', async () => {
-      await createTestUser(app, createUserDto, jwtService);
+      await createTestUser(app, createUserDto, connection);
 
       const response = await request(app.getHttpServer())
         .post('/users')
@@ -109,16 +117,29 @@ describe('Users Endpoints', () => {
     it('Should throw erros on invalid DTO fields', async () => {
       const userEmptyDto = new CreateUserDto();
 
-      await request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post('/users')
         .send(userEmptyDto)
         .expect(400);
+
+      expect(response.body).toMatchObject({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: expect.arrayContaining([
+          "O nome deve ser uma string.",
+          "O noame deve ser informado.",
+          "O email deve ser um endereço de email válido.",
+          "O email deve ser informado.",
+          "A senha deve ser uma string.",
+          "A senha deve ser informada.",
+        ])
+      })
     })
   })
 
   describe('GET /users', () => {
     it('should return an array of users', async () => {
-      const { token } = await createTestUser(app, createUserDto, jwtService);
+      const { token } = await createTestUser(app, createUserDto, connection, 'admin');
       const response = await request(app.getHttpServer())
         .get('/users')
         .set('Authorization', `Bearer ${token}`)
@@ -137,7 +158,7 @@ describe('Users Endpoints', () => {
 
   describe('GET /users/:id', () => {
     it('should return a user', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService); 
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin'); 
 
       const response = await request(app.getHttpServer())
         .get('/users/' + createUser.user._id)
@@ -151,7 +172,7 @@ describe('Users Endpoints', () => {
     })
 
     it('should throw an error if user not found', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService); 
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin'); 
       
       await request(app.getHttpServer())
         .get('/users/68823c31515ace1cb0e5c748')
@@ -169,7 +190,7 @@ describe('Users Endpoints', () => {
 
   describe('PUT /users/:id', () => {
     it('should update a user', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin');
       
       const response = await request(app.getHttpServer())
         .put('/users/' + createUser.user._id)
@@ -183,7 +204,7 @@ describe('Users Endpoints', () => {
     })
 
     it('should throw an error if user not found', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin');
       
       await request(app.getHttpServer())
         .put('/users/68823c31515ace1cb0e5c748')
@@ -203,7 +224,7 @@ describe('Users Endpoints', () => {
 
   describe('DELETE /users/:id', () => {
     it('should delete a user', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin');
 
       const response = await request(app.getHttpServer())
         .delete('/users/' + createUser.user._id)
@@ -214,7 +235,7 @@ describe('Users Endpoints', () => {
     })
 
     it('should throw an error if user not found', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection, 'admin');
 
       await request(app.getHttpServer())
         .delete('/users/68823c31515ace1cb0e5c748')
@@ -232,7 +253,7 @@ describe('Users Endpoints', () => {
 
   describe('GET /users/me', () => {
     it('should return a user', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection);
 
       const response = await request(app.getHttpServer())
         .get('/users/me')
@@ -261,7 +282,7 @@ describe('Users Endpoints', () => {
 
   describe('PUT /users/me', () => {
     it('should update a user', async () => {
-      const createUser = await createTestUser(app, createUserDto, jwtService);
+      const createUser = await createTestUser(app, createUserDto, connection);
 
       const response = await request(app.getHttpServer())
         .put('/users/me')
