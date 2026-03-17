@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "../users/entities/user.entity";
-import { AuthorizationGuard } from "./authorization.guard";
+import { AuthorizationGuard } from "./guard/authorization.guard";
 
 @Module({
   imports: [
