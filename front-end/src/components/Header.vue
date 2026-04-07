@@ -5,6 +5,7 @@
   >
     <template v-slot:prepend>
       <v-btn 
+        id="nav-bar-button"
         icon
         color="secondary"
         @click="drawer = !drawer"

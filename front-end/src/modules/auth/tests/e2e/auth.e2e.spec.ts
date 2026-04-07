@@ -1,18 +1,21 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../page-objects/login.page-object';
+import { AuthMock } from '../mocks/auth.mock';
 
 test.describe('Login Flow', () => {
   let loginPage: LoginPage;
+  let authMock: AuthMock;
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
     loginPage = new LoginPage(page);
+    authMock = new AuthMock(page, context);
     await loginPage.goto();
   });
   
   test('deve realizar login com sucesso e redirecionar para home', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-
     // Arrange
+    await authMock.loginMock();
+    await authMock.authMock();
 
     // Act
     await loginPage.login('alex@gmail.com', '123');
@@ -23,8 +26,8 @@ test.describe('Login Flow', () => {
   });
 
   test('deve exibir erro com email não cadastrado', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    
+    await authMock.loginEmailNotRegisteredMock();
+
     await loginPage.login('email_nao_cadastrado@gmail.com', '123');
     
     // Assert usando método do POM
@@ -32,7 +35,7 @@ test.describe('Login Flow', () => {
   });
 
   test('deve exibir erro com senha incorreta', async ({ page }) => {
-    const loginPage = new LoginPage(page);
+    await authMock.loginPasswordIncorrectMock();
 
     await loginPage.login('alex@gmail.com', 'senha_incorreta');
 
@@ -82,4 +85,12 @@ test.describe('Login Flow', () => {
     // O Vuetify adiciona a classe v-btn--loading e desabilita o elemento
     await expect(loginPage.submitButtonValue).toHaveClass(/.*v-btn--loading.*/);
   });
+
+  test('Deve exibir mensagem de erro de servidor', async ({ page }) => {
+    await authMock.internlaErrorMock();
+
+    await loginPage.login('alex@gmail.com', '123');
+
+    await expect(page.getByText('Erro interno do servidor')).toBeVisible();
+  })
 });
