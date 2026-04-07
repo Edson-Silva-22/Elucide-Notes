@@ -187,7 +187,7 @@
         <p
           class="text-secondaryText font-weight-bold text-body-2 px-6 d-flex flex-wrap mb-5 justify-space-between ga-2"
         >
-          Criado em 1 set. 2025
+          {{ projectForView?.createdAt ? `Criado em ${new Date(projectForView.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}` : '' }}
         </p>
 
         <v-card-text>{{ projectForView?.description ? projectForView.description : 'Sem descrição'}}</v-card-text>

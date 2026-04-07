@@ -195,9 +195,7 @@ test.describe('Fluxos da tela de projetos', () => {
       await projectsPageObject.fillEditProjectForm('Projeto Editado', 'Descrição do projeto');
 
       await projectsPageObject.saveEditedProject();
-      
-      // await projectsPageObject.editProjectDialogIsVisible();
-      
+                  
       await expect(page.getByText('Erro interno do servidor')).toBeVisible();
     })
   })
@@ -289,6 +287,52 @@ test.describe('Fluxos da tela de projetos', () => {
       await page.getByText('Outro Projeto').click();
       await expect(page).toHaveURL('/');
       await projectsPageObject.projectIsSelected(anotherProjectMock._id);
+    })
+
+    test('Deve manter projeto selecionado mesmo após a edição', async ({ page }) => {
+      await projectsMock.mockListProjects();
+      await projectsMock.mockUpdateProject(projectMock._id);
+
+      await projectsPageObject.selectProject();
+      await projectsPageObject.openNavBar();
+      await expect(page).toHaveURL('/tasks');
+      await expect(page.getByText(projectMock.title)).toBeVisible();
+
+      await page.getByText(projectMock.title).click();
+      await expect(page).toHaveURL('/');
+      await projectsPageObject.projectIsSelected(projectMock._id);
+
+      await projectsPageObject.openProjectCardMenu();
+      await projectsPageObject.openEditProjectDialog();
+      await projectsPageObject.editProjectDialogIsVisible();
+      await projectsPageObject.fillEditProjectForm('Projeto Editado', 'Descrição do projeto');
+      await projectsPageObject.saveEditedProject();
+      await projectsPageObject.editProjectDialogIsHidden();
+
+      await expect(page.getByText('Projeto Editado').first()).toBeVisible(); 
+    })
+
+    test('Deve mostrar texto padrão quanto o projeto selecionado for excluído', async ({ page }) => {
+      await projectsMock.mockListProjects();
+      await projectsMock.mockDeleteProject(projectMock._id);
+
+      await projectsPageObject.selectProject();
+      await projectsPageObject.openNavBar();
+
+      await expect(page).toHaveURL('/tasks');
+      await expect(page.getByText('Visualize e gerencie as tarefas do seu projeto').last()).toBeVisible();
+      await expect(page.getByText(projectMock.title)).toBeVisible();
+
+      await page.getByText(projectMock.title).click();
+
+      await projectsPageObject.openProjectCardMenu(projectMock._id);
+      await projectsPageObject.openDeleteProjectDialog();
+      await projectsPageObject.deleteProjectDialogIsVisible();
+      await projectsPageObject.confirmDeleteProject();
+      await projectsPageObject.deleteProjectDialogIsHidden();
+
+      await expect(page.getByText(projectMock.title)).toBeHidden();
+      await expect(page.getByText('Selecione um projeto')).toBeVisible();
     })
   })
 })
