@@ -32,7 +32,7 @@ export const useProjectStore = defineStore('project', () => {
     const response = await useApi('post', 'projects', createProjectDto)
 
     loading.value = false
-    if(response) projects.value.push(response as never)
+    if(response) projects.value.unshift(response as never)
     return response
   }
 
