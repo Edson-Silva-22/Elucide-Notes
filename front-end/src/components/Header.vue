@@ -115,6 +115,7 @@
       value: 'logout',
       prependIcon: 'mdi-logout',
       onClick: async() => {
+        projectStore.projectSelected = null
         await authStore.logout()
         router.push('/login')
       }
