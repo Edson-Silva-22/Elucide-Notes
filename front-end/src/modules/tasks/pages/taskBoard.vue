@@ -137,7 +137,7 @@
   const tasks = ref<Task[]>([])
   const stages = [
     { title: 'Não Iniciadas', status: 'not started' },
-    { title: 'Em Produção', status: 'in progress' },
+    { title: 'Em Progresso', status: 'in progress' },
     { title: 'Em Revisão', status: 'in review' },
     { title: 'Finalizado', status: 'done' }
   ]

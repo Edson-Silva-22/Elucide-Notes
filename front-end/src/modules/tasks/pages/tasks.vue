@@ -20,15 +20,57 @@
 
     <v-text-field
       name="selectProject"
-      placeholder="Buscar tarefa"
+      placeholder="Buscar por título ou código"
       variant="solo"
-      class="my-5 mx-auto"
+      class="my-5 mx-auto mb-10"
       prepend-inner-icon="mdi-magnify"
       clearable
       flat
       width="90%"
       max-width="300"
+      hide-details
     ></v-text-field>
+
+    <v-sheet 
+      class="bg-background mx-auto my-10"
+      width="100%"
+      max-width="700"
+    >
+      <div class="d-flex flex-wrap justify-center ga-2">
+        <v-select
+          label=""
+          variant="solo"
+          clearable
+          flat
+          hide-details
+          min-width="200"
+          :items="['Não iniciada', 'Em progresso', 'Em revisão', 'Finalizada']"
+          prepend-inner-icon="mdi-filter"
+          placeholder="Status"
+        ></v-select>
+  
+        <v-select
+          variant="solo"
+          clearable
+          flat
+          hide-details
+          min-width="200"
+          :items="['Tag 01', 'Tag 02', 'Tag 03']"
+          prepend-inner-icon="mdi-tag"
+          placeholder="Tags"
+        ></v-select>
+  
+        <v-date-input
+          prepend-icon=""
+          prepend-inner-icon="mdi-calendar"
+          variant="solo"
+          clearable
+          flat
+          hide-details
+          min-width="200"
+        ></v-date-input>
+      </div>
+    </v-sheet>
 
     <v-row v-if="tasks && tasks.length > 0">
       <v-col v-for="(task, index) in tasks" cols="12" sm="6" md="4">
