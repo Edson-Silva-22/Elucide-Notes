@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProjectAccessControlDto } from './dto/create-project-access-control.dto';
 import { UpdateProjectAccessControlDto } from './dto/update-project-access-control.dto';
 import { handleError } from '../../utils/methods/handleError';
@@ -43,7 +43,7 @@ export class ProjectAccessControlService {
         status: 'active',
       });
 
-      if (!hasAccess) throw new NotFoundException('Acesso negado para este projeto.');
+      if (!hasAccess) throw new ForbiddenException('Acesso negado para este projeto.');
 
       return hasAccess;
     } catch (error) {

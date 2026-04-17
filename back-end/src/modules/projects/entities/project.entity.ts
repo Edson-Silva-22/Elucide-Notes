@@ -3,7 +3,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 @Schema({ timestamps: true })
 export class Project {
   @Prop()
-  title: string;
+  title!: string;
 
   @Prop({required: false})
   description?: string;

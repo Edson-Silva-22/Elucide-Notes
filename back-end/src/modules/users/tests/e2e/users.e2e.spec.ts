@@ -1,5 +1,5 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
-import { Connection, Types } from "mongoose";
+import { Connection } from "mongoose";
 import { CreateUserDto } from "../../dto/create-user.dto";
 import { UpdateUserDto } from "../../dto/update-user.dto";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -7,40 +7,7 @@ import { getConnectionToken, MongooseModule } from "@nestjs/mongoose";
 import { AppModule } from "../../../../app.module";
 import request from 'supertest';
 import { ConfigModule } from "@nestjs/config";
-
-export async function createTestUser(
-  app: INestApplication, 
-  createUserDto: CreateUserDto, 
-  dbConnection: Connection,
-  role: string = 'user',
-) {
-  const response = await request(app.getHttpServer())
-    .post('/users')
-    .send(createUserDto)
-    .expect(201);
-
-  expect(response.body).toMatchObject({
-    name: createUserDto.name,
-    email: createUserDto.email,
-  });
-
-  if (role === 'admin') {
-    await dbConnection.useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests').collection('users').updateOne(
-      { _id: new Types.ObjectId(response.body._id) },
-      { $set: { role: 'admin' } }
-    );
-  }
-
-  const login = await request(app.getHttpServer())
-    .post('/auth')
-    .send({ email: createUserDto.email, password: createUserDto.password })
-    .expect(201);
-  
-  return {
-    token: login.get('Set-Cookie')![0].split(';')[0].split('=')[1],
-    user: response.body,
-  };
-}
+import { createTestUser } from "../mocks/users.mocks";
 
 describe('Users Endpoints', () => {
   let app: INestApplication;

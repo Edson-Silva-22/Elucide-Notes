@@ -1,3 +1,7 @@
+import { INestApplication } from "@nestjs/common";
+import request from "supertest";
+import { CreateProjectDto } from "../../dto/create-project.dto";
+
 export const mockProjectModel = {
   find: jest.fn(),
   findOne: jest.fn(),
@@ -43,4 +47,23 @@ export const createProjectDtoMock = {
 export const updateProjectDtoMock = {
   title: 'Projeto Teste Atualizado',
   description: 'Descrição do projeto teste atualizado',
+}
+
+export async function createTestProject(
+  app: INestApplication, 
+  createProjectDto: CreateProjectDto,
+  jwtToken: string,
+): Promise<typeof projectMock> {
+  const response = await request(app.getHttpServer())
+    .post('/projects')
+    .set('Authorization', `Bearer ${jwtToken}`)
+    .send(createProjectDto)
+    .expect(201);
+
+  expect(response.body).toMatchObject({
+    title: createProjectDto.title,
+    description: createProjectDto.description,
+  });
+
+  return response.body;
 }
