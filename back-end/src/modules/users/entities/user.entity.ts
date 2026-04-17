@@ -10,19 +10,19 @@ export enum SystemRole {
 })
 export class User {
   @Prop()
-  name: string;
+  name!: string;
 
   @Prop()
-  email: string;
+  email!: string;
   
   @Prop()
-  password: string;
+  password!: string;
 
   @Prop({
     enum: SystemRole,
     default: SystemRole.USER
   })
-  role: SystemRole;
+  role!: SystemRole;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

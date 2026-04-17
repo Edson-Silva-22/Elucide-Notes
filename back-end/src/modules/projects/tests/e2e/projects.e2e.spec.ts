@@ -1,6 +1,6 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import mongoose, { Connection, mongo } from "mongoose";
+import { Connection } from "mongoose";
 import { CreateProjectDto } from "../../dto/create-project.dto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getConnectionToken, MongooseModule } from "@nestjs/mongoose";
@@ -8,27 +8,9 @@ import { AppModule } from "../../../../app.module";
 import request from 'supertest';
 import { CreateUserDto } from "src/modules/users/dto/create-user.dto";
 import { ConfigModule } from "@nestjs/config";
-import { createTestUser } from "../../../users/tests/e2e/users.e2e.spec";
+import { createTestUser, createUserDtoMock } from "../../../users/tests/mocks/users.mocks";
 import { UpdateProjectDto } from "../../dto/update-project.dto";
-
-export async function createTestProject(
-  app: INestApplication, 
-  createProjectDto: CreateProjectDto,
-  jwtToken: string,
-) {
-  const response = await request(app.getHttpServer())
-    .post('/projects')
-    .set('Authorization', `Bearer ${jwtToken}`)
-    .send(createProjectDto)
-    .expect(201);
-
-  expect(response.body).toMatchObject({
-    title: createProjectDto.title,
-    description: createProjectDto.description,
-  });
-
-  return response.body;
-}
+import { createTestProject } from "../mocks/projects.mocks";
 
 describe('Projects Endpoints', () => {
   let app: INestApplication;
@@ -201,7 +183,7 @@ describe('Projects Endpoints', () => {
       });
     })
 
-    it('should return 404 if project exists but user has no access', async () => {
+    it('should return 403 if project exists but user has no access', async () => {
       const userA = await createTestUser(
         app, 
         { 
@@ -227,12 +209,12 @@ describe('Projects Endpoints', () => {
       const response = await request(app.getHttpServer())
         .get(`/projects/my-projects/${project.body._id}`)
         .set('Authorization', `Bearer ${userA.token}`) // User A tenta acessar projeto do User B
-        .expect(404);
+        .expect(403);
       
       expect(response.body).toEqual({
-        statusCode: 404,
+        statusCode: 403,
         message: 'Acesso negado para este projeto.',
-        error: 'Not Found'
+        error: 'Forbidden'
       });
     })
 
@@ -250,7 +232,7 @@ describe('Projects Endpoints', () => {
 
   describe('POST /projects', () => {
     it('should create a new project', async () => {
-      const response = await createTestUser(app, createUserDto, connection);
+      const response = await createTestUser(app, createUserDtoMock, connection);
 
       const projectResponse = await request(app.getHttpServer())
         .post('/projects')
@@ -519,7 +501,7 @@ describe('Projects Endpoints', () => {
       });
     })
 
-    it('should return 401 if user not have access to the project', async () => {
+    it('should return 403 if user not have access to the project', async () => {
       const userA = await createTestUser(
         app, 
         { 
@@ -542,12 +524,12 @@ describe('Projects Endpoints', () => {
         .put(`/projects/${project._id}`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(updateProjectDto)
-        .expect(404);
+        .expect(403);
 
       expect(response.body).toEqual({
-        statusCode: 404,
+        statusCode: 403,
         message: 'Acesso negado para este projeto.',
-        error: 'Not Found'
+        error: 'Forbidden'
       });
     })
 
