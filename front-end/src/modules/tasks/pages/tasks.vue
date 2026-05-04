@@ -55,10 +55,23 @@
           flat
           hide-details
           min-width="200"
-          :items="['Tag 01', 'Tag 02', 'Tag 03']"
+          :items="['Tag 01', 'Tag 02', 'Tag 03', 'Tag 04', 'Tag 05', 'Tag 06', 'Tag 07', 'Tag 08', 'Tag 09', 'Tag 10']"
           prepend-inner-icon="mdi-tag"
           placeholder="Tags"
-        ></v-select>
+          multiple
+        >
+          <template v-slot:menu-footer>
+            <v-btn
+              flat
+              class="ma-auto d-block mb-2"
+              icon="mdi-plus"
+              color="primary"
+              :ripple="false"
+              variant="tonal"
+              @click="createTagDialogOpen = true"
+            ></v-btn>
+          </template>
+        </v-select>
   
         <v-date-input
           prepend-icon=""
@@ -146,6 +159,57 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <v-dialog
+      v-model="createTagDialogOpen"
+      max-width="500px"
+    >
+      <v-card
+        class="bg-background py-2"
+      >
+        <div class="d-flex justify-space-between align-center w-100 mb-4">
+          <v-card-title primary-title class="px-2">Nova Tag</v-card-title>
+          
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="createTagDialogOpen = false"
+            v-ripple="false"
+          ></v-btn>
+        </div>
+
+        <p class="text-secondaryText text-body-2 mx-2">Título</p>
+        <v-text-field
+          name="title"
+          placeholder="Informe o título da tag"
+          variant="solo"
+          clearable
+          flat
+          class="mx-2"
+          v-model="tagTitle"
+          :error-messages="tagErrors.tagTitle"
+        ></v-text-field>
+
+        <div>
+          <v-btn
+            color="primary"
+            class="mx-2 mt-10 text-body-1"
+            @click="createTag"
+            height="56"
+            flat
+            :loading="taskStore.loading"
+          >Criar Tag</v-btn>
+          <v-btn
+            variant="text"
+            class="mx-2 mt-10 text-body-1"
+            @click="createTagDialogOpen = false"
+            height="56"
+            flat
+            color="primary"
+          >Cancelar</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -158,11 +222,19 @@
 
   const createTaskValidationSchema = toTypedSchema(
     z.object({
-      title: z.string({required_error: 'O título é obrigatório'}).min(3, 'O título deve conter no mínimo 3 caracteres'),
+      title: z.string({required_error: 'O título é obrigatório', invalid_type_error: 'O título é obrigatório'}).min(3, 'O título deve conter no mínimo 3 caracteres'),
     })
   )
   const { handleSubmit, errors } = useForm({ validationSchema: createTaskValidationSchema });
   const { value: title } = useField('title')
+
+  const createTagValidationSchema = toTypedSchema(
+    z.object({
+      tagTitle: z.string({required_error: 'O título é obrigatório', invalid_type_error: 'O título é obrigatório'}).min(3, 'O título deve conter no mínimo 3 caracteres'),
+    })
+  )
+  const { handleSubmit: handleTagSubmit, errors: tagErrors } = useForm({ validationSchema: createTagValidationSchema });
+  const { value: tagTitle } = useField('tagTitle')
 
   const router = useRouter();
   const projectStore = useProjectStore()
@@ -171,6 +243,7 @@
   const taskSelected = ref<Task | null>(null)
   const taskEditorOpened = ref(false)
   const createTaskDialogOpen = ref(false)
+  const createTagDialogOpen = ref(false)
 
   const createTask = handleSubmit( async (values) => {
     const response = await taskStore.create(projectStore.projectSelected!._id, {
@@ -184,6 +257,16 @@
   async function findAllTasks() {
     await taskStore.findAll(projectStore.projectSelected!._id) 
   }
+
+  const createTag = handleTagSubmit( async (values) => {
+    console.log('Criar tag com título:', values.tagTitle)
+    // const response = await taskStore.createTag(projectStore.projectSelected!._id, {
+    //   title: values.tagTitle,
+    // })
+
+    // if (response) createTagDialogOpen.value = false
+    // tagTitle.value = ''
+  })
 
   onBeforeMount(() => {
     const projectSelected = projectStore.projectSelected
