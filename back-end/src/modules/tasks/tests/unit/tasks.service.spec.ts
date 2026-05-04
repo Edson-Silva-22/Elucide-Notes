@@ -16,6 +16,7 @@ import {
   mockId,
   mockProjectId,
 } from '../mocks/tasks.mocks';
+import { Types } from 'mongoose';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -45,7 +46,10 @@ describe('TasksService', () => {
           exec: jest.fn().mockResolvedValue(mockTask),
         }),
       });
-      mockTaskModel.create.mockResolvedValue(mockTask);
+      mockTaskModel.create.mockResolvedValue({
+        ...mockTask,
+        toObject: jest.fn().mockReturnValue(mockTask),
+      });
 
       const result = await service.create(mockProjectId, mockCreateTaskDto);
 
@@ -56,8 +60,12 @@ describe('TasksService', () => {
         ...mockCreateTaskDto,
         code: mockTask.code + 1,
         projectId: expect.any(Object),
+        description: expect.any(Buffer),
       });
-      expect(result).toEqual(mockTask);
+      expect(result).toEqual({
+        ...mockTask,
+        description: mockTask.description.toString('base64')
+      });
     });
 
     it('should create task with code 1 when no tasks exist', async () => {
@@ -66,7 +74,11 @@ describe('TasksService', () => {
           exec: jest.fn().mockResolvedValue(null),
         }),
       });
-      mockTaskModel.create.mockResolvedValue({ ...mockTask, code: 1 });
+      mockTaskModel.create.mockResolvedValue({ 
+        ...mockTask, 
+        toObject: jest.fn().mockReturnValue(mockTask),
+        code: 1 
+      });
 
       const result = await service.create(mockProjectId, {
         ...mockCreateTaskDto,
@@ -82,7 +94,10 @@ describe('TasksService', () => {
           exec: jest.fn().mockResolvedValue(null),
         }),
       });
-      mockTaskModel.create.mockResolvedValue(mockTask);
+      mockTaskModel.create.mockResolvedValue({
+        ...mockTask,
+        toObject: jest.fn().mockReturnValue(mockTask),
+      });
 
       await service.create(mockProjectId, mockCreateTaskDto);
 
@@ -111,7 +126,12 @@ describe('TasksService', () => {
       mockTaskModel.find.mockReturnValue({
         skip: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockTaskList),
+            exec: jest.fn().mockReturnValue(
+              mockTaskList.map(task => ({
+                ...task,
+                toObject: jest.fn().mockReturnValue(task),
+              })),
+            ),
           }),
         }),
       });
@@ -126,7 +146,10 @@ describe('TasksService', () => {
       });
       expect(result).toEqual({
         total: 2,
-        data: mockTaskList,
+        data: mockTaskList.map(task => ({
+          ...task,
+          description: task.description.toString('base64'),
+        })),
         page: 1,
         limit: 10,
       });
@@ -137,7 +160,12 @@ describe('TasksService', () => {
       mockTaskModel.find.mockReturnValue({
         skip: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockTaskList),
+            exec: jest.fn().mockResolvedValue(
+              mockTaskList.map(task => ({
+                ...task,
+                toObject: jest.fn().mockReturnValue(task),
+              })),
+            ),
           }),
         }),
       });
@@ -155,10 +183,14 @@ describe('TasksService', () => {
 
     it('should apply search by keyword in title and description', async () => {
       mockTaskModel.countDocuments.mockResolvedValue(1);
+      const mockDoc = {
+        ...mockTask,
+        toObject: jest.fn().mockReturnValue(mockTask),
+      };
       mockTaskModel.find.mockReturnValue({
         skip: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([mockTask]),
+            exec: jest.fn().mockReturnValue([mockDoc]),
           }),
         }),
       });
@@ -168,19 +200,22 @@ describe('TasksService', () => {
         keyword: 'test',
       });
 
-      expect(mockTaskModel.countDocuments).toHaveBeenCalledWith(
-        expect.objectContaining({
-          $or: expect.any(Array),
-        }),
-      );
-      expect(mockTaskModel.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          $or: expect.any(Array),
-        }),
-      );
+      expect(mockTaskModel.countDocuments).toHaveBeenCalledWith({
+        projectId: new Types.ObjectId(mockProjectId),
+        "title": /t[eéèê]st/i,
+      });
+      expect(mockTaskModel.find).toHaveBeenCalledWith({
+        projectId: new Types.ObjectId(mockProjectId),
+        "title": /t[eéèê]st/i,
+      });
       expect(result).toEqual({
         total: 1,
-        data: [mockTask],
+        data: [
+          {
+            ...mockTask,
+            description: mockTask.description.toString('base64'),
+          },
+        ],
         page: 1,
         limit: 10,
       });
@@ -214,13 +249,19 @@ describe('TasksService', () => {
   describe('findOne', () => {
     it('should return task when found', async () => {
       mockTaskModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockTask),
+        exec: jest.fn().mockReturnValue({
+          ...mockTask,
+          toObject: jest.fn().mockReturnValue(mockTask)
+        }),
       });
 
       const result = await service.findOne(mockId);
 
       expect(mockTaskModel.findById).toHaveBeenCalledWith(mockId);
-      expect(result).toEqual(mockTask);
+      expect(result).toEqual({
+        ...mockTask,
+        description: mockTask.description.toString('base64'),
+      });
     });
 
     it('should throw NotFoundException when task not found', async () => {
@@ -246,7 +287,10 @@ describe('TasksService', () => {
     it('should update and return task', async () => {
       const updatedTask = { ...mockTask, title: 'Updated' };
       mockTaskModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(updatedTask),
+        exec: jest.fn().mockReturnValue({
+          ...updatedTask,
+          toObject: jest.fn().mockReturnValue(updatedTask),
+        }),
       });
 
       const result = await service.update(mockId, mockUpdateTaskDto);
@@ -256,7 +300,10 @@ describe('TasksService', () => {
         mockUpdateTaskDto,
         { new: true },
       );
-      expect(result).toEqual(updatedTask);
+      expect(result).toEqual({
+        ...updatedTask,
+        description: updatedTask.description.toString('base64'),
+      });
     });
 
     it('should throw NotFoundException when task not found', async () => {

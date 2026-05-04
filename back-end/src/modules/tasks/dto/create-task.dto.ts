@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsObject, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateTaskDto {
   @IsNotEmpty({ message: 'O título deve ser informado' })
@@ -6,8 +6,8 @@ export class CreateTaskDto {
   title!: string;
 
   @IsOptional()
-  @IsObject({ message: 'A descrição deve ser um objeto' })
-  description?: Record<string, any>
+  @IsString({ message: 'A descrição deve ser uma string' })
+  description?: string;
 
   @IsOptional()
   @IsArray({ message: 'As tags devem ser um array' })

@@ -14,7 +14,7 @@
         append-icon="mdi-plus"
         color="primary"
         :ripple="false"
-        @click="taskSelected = null; dialogTitle = 'Nova Tarefa'; taskEditorOpened = true"
+        @click="createTaskDialogOpen = true"
       >Criar Tarefa</v-btn>
     </div>
 
@@ -76,12 +76,13 @@
       <v-col v-for="(task, index) in tasks" cols="12" sm="6" md="4">
         <TaskCard
           :key="index"
+          :_id="task._id"
           :code="task.code"
           :title="task.title"
           :status="task.status"
           :description="task.description"
           :tags="task.tags"
-          @click="taskSelected = task; dialogTitle = 'Editar Tarefa';taskEditorOpened = true"
+          @click="taskSelected = task; taskEditorOpened = true"
         ></TaskCard>
       </v-col>
     </v-row>
@@ -91,22 +92,98 @@
     <TaskEditor
       v-model="taskEditorOpened"
       :task="taskSelected"
-      :dialogTitle
+      dialogTitle="Editar Tarefa"
     ></TaskEditor>
+
+    <v-dialog
+      v-model="createTaskDialogOpen"
+    >
+      <v-card
+        width="100%"
+        max-width="500"
+        class="bg-background py-2 mx-auto"
+      > 
+        <div class="d-flex justify-space-between align-center w-100 mb-4">
+          <v-card-title primary-title class="px-2">Nova Tarefa</v-card-title>
+          
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="createTaskDialogOpen = false"
+            v-ripple="false"
+          ></v-btn>
+        </div>
+
+        <p class="text-secondaryText text-body-2 mx-2">Título</p>
+        <v-text-field
+          name="title"
+          placeholder="Informe o título da tarefa"
+          variant="solo"
+          clearable
+          flat
+          class="mx-2"
+          v-model="title"
+          :error-messages="errors.title"
+        ></v-text-field>
+
+        <div>
+          <v-btn
+            color="primary"
+            class="mx-2 mt-10 text-body-1"
+            @click="createTask"
+            height="56"
+            flat
+            :loading="taskStore.loading"
+          >Criar Tarefa</v-btn>
+          <v-btn
+            variant="text"
+            class="mx-2 mt-10 text-body-1"
+            @click="createTaskDialogOpen = false"
+            height="56"
+            flat
+            color="primary"
+          >Cancelar</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
 <script setup lang="ts">
   import { useProjectStore } from '@/modules/projects/store/projects.store';
   import { useTaskStore, type Task } from '../store/tasks.store';
+  import { useField, useForm } from 'vee-validate';
+  import { toTypedSchema } from "@vee-validate/zod";
+  import * as z from 'zod';
+
+  const createTaskValidationSchema = toTypedSchema(
+    z.object({
+      title: z.string({required_error: 'O título é obrigatório'}).min(3, 'O título deve conter no mínimo 3 caracteres'),
+    })
+  )
+  const { handleSubmit, errors } = useForm({ validationSchema: createTaskValidationSchema });
+  const { value: title } = useField('title')
 
   const router = useRouter();
   const projectStore = useProjectStore()
   const taskStore = useTaskStore()
-  const tasks = ref<Task[]>()
+  const tasks = computed(() => taskStore.tasks)
   const taskSelected = ref<Task | null>(null)
   const taskEditorOpened = ref(false)
-  const dialogTitle = ref('')
+  const createTaskDialogOpen = ref(false)
+
+  const createTask = handleSubmit( async (values) => {
+    const response = await taskStore.create(projectStore.projectSelected!._id, {
+      title: values.title,
+    })
+
+    if (response) createTaskDialogOpen.value = false
+    title.value = ''
+  })
+
+  async function findAllTasks() {
+    await taskStore.findAll(projectStore.projectSelected!._id) 
+  }
 
   onBeforeMount(() => {
     const projectSelected = projectStore.projectSelected
@@ -115,7 +192,7 @@
     }
   }) 
 
-  onMounted(() => {
-    tasks.value = taskStore.tasks
+  onMounted(async () => {
+    await findAllTasks() 
   })
 </script>

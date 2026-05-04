@@ -28,7 +28,7 @@ export const mockService = {
 export const mockTask: Task = {
   code: 1,
   title: 'Test Task',
-  description: { text: 'Test description' },
+  description: createDescriptionBuffer('This is a test task'),
   status: TaskStatus.NOT_STARTED,
   tags: ['tag1'],
   projectId: new Types.ObjectId('507f1f77bcf86cd799439011'),
@@ -41,19 +41,13 @@ export const mockTaskList: Task[] = [
 
 export const mockCreateTaskDto: CreateTaskDto = {
   title: 'Test Task',
-  description: {
-    content: 'This is a test task',
-    format: 'markdown'
-  },
+  description: 'VGhpcyBpcyBhIHRlc3QgdGFzaw==', // Base64 for "This is a test task"
   tags: ['taskId-1', 'taskId-2']
 };
 
 export const mockUpdateTaskDto: UpdateTaskDto = {
   title: 'Updated Task',
-  description: {
-    content: 'This is an updated task',
-    format: 'markdown'
-  },
+  description: 'VGhpcyBpcyBhIHRlc3QgdGFzaw==', // Base64 for "This is an updated task"
   tags: ['updated-tag-1']
 };
 
@@ -82,3 +76,8 @@ export async function createTestTask(
 
   return response.body;
 } 
+
+export function createDescriptionBuffer(description: string): Buffer {
+  const descriptionBuffer = Buffer.from(description, 'base64');
+  return descriptionBuffer;
+}

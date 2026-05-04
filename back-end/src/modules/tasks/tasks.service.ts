@@ -20,8 +20,17 @@ export class TasksService {
       const newCode = findLastTask ? findLastTask.code + 1 : 1;
       createTaskDto['code'] = newCode;
       createTaskDto['projectId'] = new Types.ObjectId(projectId);
+      let buffer: Buffer | undefined;
 
-      return await this.taskModel.create(createTaskDto);
+      if (createTaskDto.description) {
+        buffer = Buffer.from(createTaskDto.description, 'base64')
+      }
+
+      const createdTask = await this.taskModel.create({ ...createTaskDto, description: buffer });
+      return {
+        ...createdTask.toObject(),
+        description: this.bufferToBase64(createdTask.description),
+      }
     } catch (error) {
       handleError(error);
     }
@@ -37,10 +46,7 @@ export class TasksService {
       
       if (listTasksDto.keyword) {
         const regex = buildSearchRegex(listTasksDto.keyword);
-        query['$or'] = [
-          { title: regex },
-          { description: regex },
-        ];
+        query['title'] = regex;
       }
 
       const countDocs = await this.taskModel.countDocuments(query);
@@ -52,7 +58,10 @@ export class TasksService {
 
       return {
         total: countDocs,
-        data: tasks,
+        data: tasks.map(task => ({
+          ...task.toObject(),
+          description: this.bufferToBase64(task.description),
+        })),
         page,
         limit,
       };
@@ -66,7 +75,10 @@ export class TasksService {
       const findTask = await this.taskModel.findById(id).exec();
       if (!findTask) throw new NotFoundException('Tarefa não encontrada');
 
-      return findTask;
+      return {
+        ...findTask.toObject(),
+        description: this.bufferToBase64(findTask.description),
+      };
     } catch (error) {
       handleError(error);
     }
@@ -77,7 +89,10 @@ export class TasksService {
       const findAndUpdateTask = await this.taskModel.findByIdAndUpdate(id, updateTaskDto, { new: true }).exec();
       if (!findAndUpdateTask) throw new NotFoundException('Tarefa não encontrada');
 
-      return findAndUpdateTask;
+      return {
+        ...findAndUpdateTask.toObject(),
+        description: this.bufferToBase64(findAndUpdateTask.description),
+      };
     } catch (error) {
       handleError(error);
     }
@@ -92,5 +107,10 @@ export class TasksService {
     } catch (error) {
       handleError(error);
     }
+  }
+
+  bufferToBase64(buffer: Buffer | null) {
+    if (!buffer) return null
+    return buffer.toString('base64')
   }
 }

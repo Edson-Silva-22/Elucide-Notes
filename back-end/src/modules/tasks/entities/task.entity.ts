@@ -16,8 +16,8 @@ export class Task {
   @Prop()
   title!: string;
   
-  @Prop({ type: Object, default: {} })
-  description!: Record<string, any>;
+  @Prop({ type: Buffer })
+  description!: Buffer;
 
   @Prop({ default: TaskStatus.NOT_STARTED })
   status!: TaskStatus;
