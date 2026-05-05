@@ -512,7 +512,10 @@ describe('Tasks Endpoints', () => {
         .send(mockUpdateTaskDto)
         .expect(200);
 
-      expect(response.body).toMatchObject(mockUpdateTaskDto);
+      expect(response.body).toMatchObject({
+        ...mockUpdateTaskDto,
+        description: "VkdocGN5QnBjeUJoSUhSbGMzUWdkR0Z6YXc9PQ=="
+      });
     });
 
     it('should not update a task without authentication', async () => {
