@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ProjectAccessControlModule } from './modules/project-access-control/project-access-control.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { TasksModule } from './modules/tasks/tasks.module';
     AuthModule,
     ProjectsModule,
     ProjectAccessControlModule,
-    TasksModule
+    TasksModule,
+    TagsModule
   ],
   controllers: [],
   providers: [],
