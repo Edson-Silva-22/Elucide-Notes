@@ -47,7 +47,7 @@
         <v-btn 
           id="login-submit"
           color="primary" 
-          class="mt-2 mx-auto d-block" 
+          class="mt-2 mx-auto d-block text-body-1" 
           height="48"
           :loading="authStore.loading"
           @click="login"

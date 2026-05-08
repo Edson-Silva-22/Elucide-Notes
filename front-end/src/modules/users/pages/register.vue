@@ -76,14 +76,14 @@
         <v-btn 
           color="primary" 
           id="register-button"
-          class="mt-2 mx-auto d-block" 
+          class="mt-2 mx-auto d-block text-body-1" 
           height="48"
           @click="register"
         >Confirmar</v-btn>
         <v-btn 
           color="primary" 
           id="back-button"
-          class="mt-2 mx-auto d-block" 
+          class="mt-2 mx-auto d-block text-body-1" 
           height="48"
           variant="text"
           @click="router.push('/login')"

@@ -8,10 +8,8 @@
     <div class="d-flex justify-center mb-10">
       <v-btn
         height="56"
-        width="300"
         flat
         class="text-body-1"
-        append-icon="mdi-plus"
         color="primary"
         :ripple="false"
       >Criar Tarefa</v-btn>
