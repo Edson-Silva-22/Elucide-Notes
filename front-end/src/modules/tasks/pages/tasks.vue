@@ -8,18 +8,18 @@
     <div class="d-flex justify-center">
       <v-btn
         height="56"
-        width="300"
+        
         flat
         class="text-body-1"
-        append-icon="mdi-plus"
         color="primary"
         :ripple="false"
         @click="createTaskDialogOpen = true"
+        :loading="taskLoading"
       >Criar Tarefa</v-btn>
     </div>
 
     <v-text-field
-      name="selectProject"
+      name="selectTask"
       placeholder="Buscar por título ou código"
       variant="solo"
       class="my-5 mx-auto mb-10"
@@ -55,11 +55,53 @@
           flat
           hide-details
           min-width="200"
-          :items="['Tag 01', 'Tag 02', 'Tag 03', 'Tag 04', 'Tag 05', 'Tag 06', 'Tag 07', 'Tag 08', 'Tag 09', 'Tag 10']"
+          :items="tags"
           prepend-inner-icon="mdi-tag"
           placeholder="Tags"
           multiple
+          item-color="primary"
         >
+          <template v-slot:menu-header="{ search, filteredItems }">
+            <v-text-field
+              v-model="search.value"
+              :error="!!search.value && !filteredItems.length"
+              density="compact"
+              placeholder="Buscar por tag"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo"
+              flat
+              clearable
+              hide-details
+            ></v-text-field>
+          </template>
+
+          <template v-slot:item="{ props: itemProps, item }">
+            <v-list-item 
+              v-bind="itemProps" 
+            >
+              <template v-slot:prepend="{ isSelected, select }">
+                <v-list-item-action start>
+                  <v-checkbox-btn :model-value="isSelected" @update:model-value="select"></v-checkbox-btn>
+                </v-list-item-action>
+              </template>
+              
+              <template v-slot:append>
+                <v-btn
+                  icon="mdi-delete"
+                  size="small"
+                  variant="text"
+                  @click.stop="deleteTagDialogIsOpened = true; deleteTagId = item.raw._id"
+                ></v-btn>
+              </template>
+            </v-list-item>
+          </template>
+
+          <template v-slot:no-data>
+            <v-list-item>
+              <v-list-item-title class="text-secondaryText">Nenhuma tag encontrada</v-list-item-title>  
+            </v-list-item>
+          </template>
+
           <template v-slot:menu-footer>
             <v-btn
               flat
@@ -85,7 +127,7 @@
       </div>
     </v-sheet>
 
-    <v-row v-if="tasks && tasks.length > 0">
+    <v-row v-if="tasks && tasks.length > 0 && !taskLoading">
       <v-col v-for="(task, index) in tasks" cols="12" sm="6" md="4">
         <TaskCard
           :key="index"
@@ -100,7 +142,17 @@
       </v-col>
     </v-row>
 
-    <p v-else class="text-secondaryText text-center text-body-1 my-10">Nenhuma tarefa encontrada</p>
+    <div v-if="tasks && tasks.length === 0 && taskLoading" class="d-flex justify-center">
+      <v-progress-circular
+        id="progress-circular"
+        color="primary"
+        indeterminate
+        :size="128"
+        :width="10"
+      ></v-progress-circular>
+    </div>
+
+    <p v-if="tasks && tasks.length === 0 && !taskLoading" class="text-secondaryText text-center text-body-1 my-10">Nenhuma tarefa encontrada</p>
 
     <TaskEditor
       v-model="taskEditorOpened"
@@ -197,7 +249,7 @@
             @click="createTag"
             height="56"
             flat
-            :loading="taskStore.loading"
+            :loading="tagLoading"
           >Criar Tag</v-btn>
           <v-btn
             variant="text"
@@ -206,6 +258,51 @@
             height="56"
             flat
             color="primary"
+          >Cancelar</v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      id="delete-tag-dialog"
+      v-model="deleteTagDialogIsOpened"
+      max-width="500"
+      width="95%"
+    >
+      <v-card
+        color="background"
+        title="Realmente deseja excluir esta tag?"
+        class="pb-4"
+      >
+        <template v-slot:append>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            @click="deleteTagDialogIsOpened = !deleteTagDialogIsOpened"
+            v-ripple="false"
+          ></v-btn>
+        </template>
+  
+        <p class="px-6 text-secondaryText text-body-1">Ao excluir essa tag não será possível recuperá-la.</p>
+  
+        <div class="px-6 d-flex justify-between ga-2">
+          <v-btn
+            id="comfirm-delete-project-button"
+            color="primary"
+            class="mt-5 d-block text-body-1"
+            width="150"
+            height="56"
+            @click="deleteTag(deleteTagId)"
+            :loading="tagLoading"
+          >Confirmar</v-btn>
+  
+          <v-btn
+            color="primary"
+            variant="text"
+            class="mt-5 d-block text-body-1"
+            width="150"
+            height="56"
+            @click="deleteTagDialogIsOpened = !deleteTagDialogIsOpened"
           >Cancelar</v-btn>
         </div>
       </v-card>
@@ -219,6 +316,7 @@
   import { useField, useForm } from 'vee-validate';
   import { toTypedSchema } from "@vee-validate/zod";
   import * as z from 'zod';
+  import { useTagStore } from '@/modules/tags/store/tags.store';
 
   const createTaskValidationSchema = toTypedSchema(
     z.object({
@@ -240,10 +338,16 @@
   const projectStore = useProjectStore()
   const taskStore = useTaskStore()
   const tasks = computed(() => taskStore.tasks)
+  const tagStore = useTagStore()
   const taskSelected = ref<Task | null>(null)
   const taskEditorOpened = ref(false)
   const createTaskDialogOpen = ref(false)
   const createTagDialogOpen = ref(false)
+  const tags = computed(() => tagStore.tags)
+  const deleteTagDialogIsOpened = ref(false)
+  const taskLoading = computed(() => taskStore.loading)
+  const tagLoading = computed(() => tagStore.loading)
+  const deleteTagId = ref('')
 
   const createTask = handleSubmit( async (values) => {
     const response = await taskStore.create(projectStore.projectSelected!._id, {
@@ -259,14 +363,22 @@
   }
 
   const createTag = handleTagSubmit( async (values) => {
-    console.log('Criar tag com título:', values.tagTitle)
-    // const response = await taskStore.createTag(projectStore.projectSelected!._id, {
-    //   title: values.tagTitle,
-    // })
+    const response = await tagStore.create(projectStore.projectSelected!._id, {
+      title: values.tagTitle,
+    })
 
-    // if (response) createTagDialogOpen.value = false
-    // tagTitle.value = ''
+    if (response) createTagDialogOpen.value = false
+    tagTitle.value = ''
   })
+
+  async function findAllTags() {
+    await tagStore.findAll(projectStore.projectSelected!._id) 
+  }
+
+  async function deleteTag(tagId: string) {
+    await tagStore.remove(projectStore.projectSelected!._id, tagId)
+    deleteTagDialogIsOpened.value = false
+  }
 
   onBeforeMount(() => {
     const projectSelected = projectStore.projectSelected
@@ -277,5 +389,6 @@
 
   onMounted(async () => {
     await findAllTasks() 
+    await findAllTags()
   })
 </script>

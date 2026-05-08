@@ -9,10 +9,8 @@
       <v-btn
         id="create-project-dialog-button"
         height="56"
-        width="300"
         flat
         class="text-body-1"
-        append-icon="mdi-plus"
         color="primary"
         :ripple="false"
         @click="createDialogIsOpened = !createDialogIsOpened"
