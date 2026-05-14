@@ -16,6 +16,7 @@ declare module 'vue' {
     PageHeader: typeof import('./components/PageHeader.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SelectTags: typeof import('./components/SelectTags.vue')['default']
     TaskCard: typeof import('./components/TaskCard.vue')['default']
     TaskEditor: typeof import('./components/TaskEditor.vue')['default']
     TipTapEditor: typeof import('./components/TipTapEditor.vue')['default']
