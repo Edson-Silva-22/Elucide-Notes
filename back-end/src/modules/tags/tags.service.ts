@@ -18,7 +18,8 @@ export class TagsService {
     try {
       const existingTag = await this.tagModel.findOne({
         title: createTagDto.title,
-        projectId: new Types.ObjectId(projectId)
+        projectId: new Types.ObjectId(projectId),
+        active: true
       }).exec();
 
       if (existingTag) {
@@ -27,7 +28,8 @@ export class TagsService {
 
       const createdTag = await this.tagModel.create({
         ...createTagDto,
-        projectId: new Types.ObjectId(projectId)
+        projectId: new Types.ObjectId(projectId),
+        active: true
       });
 
       return createdTag.toObject();
@@ -42,6 +44,7 @@ export class TagsService {
       const limit = Number(listTagDto.limit) || 10;
       const query: Record<string, unknown> = {
         projectId: new Types.ObjectId(projectId),
+        active: true,
       }
 
       if (listTagDto.keyword) {
@@ -70,7 +73,7 @@ export class TagsService {
   async findOne(id: string) {
     try {
       const findTag = await this.tagModel.findById(id).exec();
-      if (!findTag) throw new ConflictException('Tag não encontrada');
+      if (!findTag || !findTag.active) throw new ConflictException('Tag não encontrada');
 
       return findTag.toObject();
     } catch (error) {
@@ -81,13 +84,14 @@ export class TagsService {
   async update(id: string, updateTagDto: UpdateTagDto) {
     try {
       const existingTag = await this.tagModel.findById(id).exec();
-      if (!existingTag) throw new ConflictException('Tag não encontrada');
+      if (!existingTag || !existingTag.active) throw new ConflictException('Tag não encontrada');
 
       if (updateTagDto.title && updateTagDto.title !== existingTag.title) {
         const duplicateTag = await this.tagModel.findOne({
           title: updateTagDto.title,
           projectId: existingTag.projectId,
-          _id: { $ne: new Types.ObjectId(id) }
+          _id: { $ne: new Types.ObjectId(id) },
+          active: true
         }).exec();
 
         if (duplicateTag) {
@@ -106,8 +110,12 @@ export class TagsService {
 
   async remove(id: string) {
     try {
-      const findAndDeleteTag = await this.tagModel.findByIdAndDelete(id).exec();
-      if (!findAndDeleteTag) throw new ConflictException('Tag não encontrada');
+      const findAndDeleteTag = await this.tagModel.findByIdAndUpdate(
+        id,
+        { active: false },
+        { new: true }
+      ).exec();
+      if (!findAndDeleteTag || findAndDeleteTag.active) throw new ConflictException('Tag não encontrada');
 
       return 'Tag deletada com sucesso';
     } catch (error) {

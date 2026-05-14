@@ -129,6 +129,39 @@ describe('Tags Endpoints', () => {
       });
     });
 
+    it('should allow creating a tag with a title of a deleted tag', async () => {
+      const createUserResponse = await createTestUser(
+        app,
+        createUserDtoMock,
+        connection,
+      );
+      const createProjectResponse = await createTestProject(
+        app,
+        createProjectDtoMock,
+        createUserResponse.token,
+      );
+
+      const createTagResponse = await createTestTag(
+        app,
+        mockCreateTagDto,
+        createUserResponse.token,
+        createProjectResponse._id,
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(200);
+
+      const recreateResponse = await request(app.getHttpServer())
+        .post(`/projects/${createProjectResponse._id}/tags`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .send(mockCreateTagDto)
+        .expect(201);
+
+      expect(recreateResponse.body).toMatchObject(mockCreateTagDto);
+    });
+
     it('should not create a tag with invalid data', async () => {
       const createUserResponse = await createTestUser(
         app,
@@ -355,6 +388,39 @@ describe('Tags Endpoints', () => {
         error: 'Forbidden',
       });
     });
+
+    it('should not list deleted tags', async () => {
+      const createUserResponse = await createTestUser(
+        app,
+        createUserDtoMock,
+        connection,
+      );
+      const createProjectResponse = await createTestProject(
+        app,
+        createProjectDtoMock,
+        createUserResponse.token,
+      );
+
+      const createTagResponse = await createTestTag(
+        app,
+        mockCreateTagDto,
+        createUserResponse.token,
+        createProjectResponse._id,
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .get(`/projects/${createProjectResponse._id}/tags`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(200);
+
+      expect(response.body.data).toHaveLength(0);
+      expect(response.body.total).toBe(0);
+    });
   });
 
   describe('GET /projects/:id/tags/:tagId', () => {
@@ -477,6 +543,42 @@ describe('Tags Endpoints', () => {
         .get(
           `/projects/${createProjectResponse._id}/tags/678f1a2b3c4d5e6f7a8b9c0d`,
         )
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(409);
+
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message: 'Tag não encontrada',
+        error: 'Conflict',
+      });
+    });
+
+    it('should not get a deleted tag', async () => {
+      const createUserResponse = await createTestUser(
+        app,
+        createUserDtoMock,
+        connection,
+      );
+      const createProjectResponse = await createTestProject(
+        app,
+        createProjectDtoMock,
+        createUserResponse.token,
+      );
+
+      const createTagResponse = await createTestTag(
+        app,
+        mockCreateTagDto,
+        createUserResponse.token,
+        createProjectResponse._id,
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .get(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
         .set('Authorization', `Bearer ${createUserResponse.token}`)
         .expect(409);
 
@@ -696,10 +798,47 @@ describe('Tags Endpoints', () => {
         error: 'Conflict',
       });
     });
+
+    it('should not update a deleted tag', async () => {
+      const createUserResponse = await createTestUser(
+        app,
+        createUserDtoMock,
+        connection,
+      );
+      const createProjectResponse = await createTestProject(
+        app,
+        createProjectDtoMock,
+        createUserResponse.token,
+      );
+
+      const createTagResponse = await createTestTag(
+        app,
+        mockCreateTagDto,
+        createUserResponse.token,
+        createProjectResponse._id,
+      );
+
+      await request(app.getHttpServer())
+        .delete(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .put(`/projects/${createProjectResponse._id}/tags/${createTagResponse._id}`)
+        .set('Authorization', `Bearer ${createUserResponse.token}`)
+        .send(mockUpdateTagDto)
+        .expect(409);
+
+      expect(response.body).toEqual({
+        statusCode: 409,
+        message: 'Tag não encontrada',
+        error: 'Conflict',
+      });
+    });
   });
 
   describe('DELETE /projects/:id/tags/:tagId', () => {
-    it('should delete a tag by id', async () => {
+    it('should soft delete a tag by id', async () => {
       const createUserResponse = await createTestUser(
         app,
         createUserDtoMock,
@@ -726,6 +865,12 @@ describe('Tags Endpoints', () => {
         .expect(200);
 
       expect(response.body).toEqual({});
+
+      const deletedTag = await connection
+        .useDb(process.env.MONGODB_DB_NAME_TESTS || 'elucide-notes-tests')
+        .collection('tags')
+        .findOne({ _id: new connection.base.Types.ObjectId(createTagResponse._id) });
+      expect(deletedTag?.active).toBe(false);
     });
 
     it('should not delete a tag without authentication', async () => {

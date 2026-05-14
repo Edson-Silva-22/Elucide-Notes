@@ -12,6 +12,9 @@ export class Tag {
     required: true
   })
   projectId!: Types.ObjectId;
+
+  @Prop({ default: true })
+  active!: boolean;
 }
 
 export const TagSchema = SchemaFactory.createForClass(Tag);
